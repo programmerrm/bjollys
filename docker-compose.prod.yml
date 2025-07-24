@@ -1,0 +1,85 @@
+version: '3.9'
+
+services:
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.prod
+    command: node server.js
+    networks:
+      - pngnet
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    volumes:
+      - ./backend:/app
+    env_file:
+      - .env
+      - ./backend/.env
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - redis
+    networks:
+      - pngnet
+    command: gunicorn app.wsgi:application --bind 0.0.0.0:8000
+  celery:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    volumes:
+      - ./backend:/app
+    env_file:
+      - .env
+      - ./backend/.env
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - backend
+      - redis
+    networks:
+      - pngnet
+    command: celery -A app worker --loglevel=info
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - pngnet
+  mysql:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DB}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - pngnet
+  nginx:
+    image: nginx:1.24-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - client
+      - backend
+    volumes:
+      - ./backend/static:/backend/static:ro
+      - ./backend/media:/backend/media:ro
+      - ./frontend/dist:/usr/share/nginx/html:ro
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    networks:
+      - pngnet
+
+volumes:
+  mysql_data:
+
+networks:
+  pngnet:
+    driver: bridge

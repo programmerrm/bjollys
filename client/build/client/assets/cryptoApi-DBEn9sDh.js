@@ -1,0 +1,1 @@
+import{b as i}from"./apiSlice-DZ1uaOkK.js";const o=i.injectEndpoints({endpoints:t=>({getSubscriptionData:t.query({query:()=>"/crypto/subscription/"})})}),{useGetSubscriptionDataQuery:r}=o;export{r as u};
