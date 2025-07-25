@@ -9,26 +9,26 @@ class PageHeaderContent(models.Model):
     menu = models.ForeignKey(
         HeaderMenu,
         on_delete=models.CASCADE,
-        related_name='contents',
+        related_name='header_menus',
         verbose_name="Header Menu",
         help_text="Select the header menu this content belongs to."
+    )
+    image = models.ImageField(
+        verbose_name="Image",
+        help_text="Upload image.",
+        null=True,
+        blank=True
+    )
+    video = models.FileField(
+        verbose_name="Video",
+        help_text="Upload video.",
+        null=True,
+        blank=True
     )
     title = models.CharField(
         max_length=500,
         verbose_name="Title",
         help_text="Enter the section title.",
-        null=True,
-        blank=True
-    )
-    description = RichTextUploadingField(
-        verbose_name="Description",
-        help_text="Enter a short description.",
-        null=True,
-        blank=True
-    )
-    image = RichTextUploadingField(
-        verbose_name="Image",
-        help_text="Upload image.",
         null=True,
         blank=True
     )

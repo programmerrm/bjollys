@@ -22,6 +22,6 @@ class BookingViewSet(viewsets.ViewSet):
         return Response({
             "success": False,
             "message": "Validation failed",
-            "errors": serializer.errors
+            "errors": serializer.errors,
         }, status=status.HTTP_400_BAD_REQUEST)
     

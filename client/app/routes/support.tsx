@@ -1,6 +1,28 @@
 import { Link } from "@remix-run/react";
+import { useState } from "react";
+import { useGetTicketQuery } from "~/redux/features/ticket/ticketApi";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+
+// Extend dayjs with plugins
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export default function Support() {
+  const [page, setPage] = useState(1);
+  const { data, isLoading } = useGetTicketQuery(`?page=${page}`, {
+    refetchOnMountOrArgChange: true,
+  });
+
+  const nextPage = () => {
+    if (data?.next) setPage((prev) => prev + 1);
+  };
+
+  const prevPage = () => {
+    if (data?.previous && page > 1) setPage((prev) => prev - 1);
+  };
+
   return (
     <section className="pt-6">
       <div className="container">
@@ -32,36 +54,60 @@ export default function Support() {
                   <th className="py-3 px-5 text-lg text-black font-normal text-left shadow-[inset_0_0_0_9999px_transparent] whitespace-nowrap">
                     Created At
                   </th>
-                  <th className="py-3 px-5 text-lg text-black font-normal text-left rounded-tr-2xl rounded-br-2xl shadow-[inset_0_0_0_9999px_transparent] whitespace-nowrap">
-                    View
-                  </th>
                 </tr>
               </thead>
-              <tbody className="w-full"></tbody>
+              <tbody>
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={4} className="text-center py-4">
+                      Loading...
+                    </td>
+                  </tr>
+                ) : (
+                  data?.results?.map((item: any) => (
+                    <tr
+                      className="border-b border-[#0003] group"
+                      key={item.id}
+                    >
+                      <td className="py-3 px-5 pl-10 text-sm md:text-lg text-left rounded-bl-2xl">
+                        {item.id}
+                      </td>
+                      <td className="py-3 px-5 text-sm md:text-lg text-left">
+                        {item.status}
+                      </td>
+                      <td className="py-3 px-5 text-sm md:text-lg text-left">
+                        {item.issueType}
+                      </td>
+                      <td className="py-3 px-5 text-sm md:text-lg text-left rounded-br-2xl">
+                        {item.created_at
+                          ? dayjs(item.created_at)
+                            .tz("Asia/Dhaka")
+                            .format("MMMM Do YYYY, h:mm:ss a")
+                          : "N/A"}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
             </table>
           </div>
-          <div className="flex items-center justify-center pagination">
-            <button className="size-[2rem] rounded-full flex items-center justify-center opacity-[0.38] cursor-pointer">
-              <svg
-                className="size-5"
-                focusable="false"
-                aria-hidden="true"
-                viewBox="0 0 24 24"
-                data-testid="NavigateBeforeIcon"
-              >
-                <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"></path>
-              </svg>
+
+          {/* Pagination */}
+          <div className="flex items-center justify-center gap-3 mt-4">
+            <button
+              onClick={prevPage}
+              disabled={!data?.previous}
+              className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-200 hover:bg-gray-300 disabled:opacity-40 cursor-pointer"
+            >
+              ‹
             </button>
-            <button className="size-[2rem] rounded-full flex items-center justify-center opacity-[0.38] cursor-pointer">
-              <svg
-                className="size-5"
-                focusable="false"
-                aria-hidden="true"
-                viewBox="0 0 24 24"
-                data-testid="NavigateNextIcon"
-              >
-                <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path>
-              </svg>
+            <span className="text-base font-medium">{page}</span>
+            <button
+              onClick={nextPage}
+              disabled={!data?.next}
+              className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-200 hover:bg-gray-300 disabled:opacity-40 cursor-pointer"
+            >
+              ›
             </button>
           </div>
         </div>

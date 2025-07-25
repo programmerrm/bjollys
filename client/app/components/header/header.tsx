@@ -9,11 +9,20 @@ import { MEDIA_URL } from "~/utils/api";
 import { Menu, NONAUTHMenu } from "~/utils/menu";
 import { ReactIcons } from "~/utils/reactIcons";
 import { MobileMenu } from "./mobileMenu";
+import { useGetPagesQuery } from "~/redux/features/pages/pagesApi";
 
 export const Header = () => {
   const [isMenuShow, setIsMenuShow] = useState<boolean>(false);
-  const { IoMdNotifications, MdOutlineKeyboardArrowDown, RiMenu3Fill, IoCloseOutline } = ReactIcons;
+  const {
+    IoMdNotifications,
+    MdOutlineKeyboardArrowDown,
+    RiMenu3Fill,
+    IoCloseOutline,
+  } = ReactIcons;
   const { data } = useGetLogoQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+  });
+  const { data: headerMenus } = useGetPagesQuery(undefined, {
     refetchOnMountOrArgChange: true,
   });
   const Logo = data?.data?.logo;
@@ -21,13 +30,12 @@ export const Header = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-
   const handleChannelClick = () => {
     dispatch(openChannel());
   };
 
   const handleSmoothScroll = (id: string) => {
-    navigate('/');
+    navigate("/");
     setTimeout(() => {
       const element = document.getElementById(id);
       if (element) {
@@ -55,20 +63,24 @@ export const Header = () => {
         ) : item.path?.startsWith("/#") ? (
           <button
             type="button"
-            onClick={() => item.path && handleSmoothScroll(item.path.replace("/#", ""))}
+            onClick={() =>
+              item.path && handleSmoothScroll(item.path.replace("/#", ""))
+            }
             className="text-title hover:text-white rounded-full py-1.5 px-3.5 flex items-center capitalize transition-all duration-300 hover:bg-gradient-to-r hover:from-yellow-700 hover:to-red-400 cursor-pointer ease-linear"
           >
             {item.icon && item.icon}
             {item.name}
           </button>
         ) : (
-          <Link
-            to={item.path || "#"}
-            className="text-title hover:text-white rounded-full py-1.5 px-3.5 flex items-center capitalize transition-all duration-300 hover:bg-gradient-to-r hover:from-yellow-700 hover:to-red-400 ease-linear"
-          >
-            {item.icon && item.icon}
-            {item.name}
-          </Link>
+          <>
+            <Link
+              to={item.path || "#"}
+              className="text-title hover:text-white rounded-full py-1.5 px-3.5 flex items-center capitalize transition-all duration-300 hover:bg-gradient-to-r hover:from-yellow-700 hover:to-red-400 ease-linear"
+            >
+              {item.icon && item.icon}
+              {item.name}
+            </Link>
+          </>
         )}
       </li>
     ));
@@ -78,10 +90,32 @@ export const Header = () => {
       <div className="max-w-screen-2xl container mx-auto px-2.5 lg:px-5 w-full">
         <div className="flex flex-row flex-wrap items-center justify-between w-full">
           <Link className="block w-fit" to={"/"}>
-            <img className="w-28 sm:w-28 md:w-32 lg:w-40" src={`${MEDIA_URL}${Logo}`} alt="bijolis" loading="lazy" decoding="async" />
+            <img
+              className="w-28 sm:w-28 md:w-32 lg:w-40"
+              src={`${MEDIA_URL}${Logo}`}
+              alt="bijolis"
+              loading="lazy"
+              decoding="async"
+            />
           </Link>
           <nav className="hidden lg:flex flex-col flex-wrap py-1.5 px-2.5 rounded-full text-white bg-section-title">
-            <ul className="flex flex-row flex-wrap items-center gap-x-2.5">{auth?.tokens && auth.user ? renderMenuItems(Menu) : renderMenuItems(NONAUTHMenu)}</ul>
+            <ul className="flex flex-row flex-wrap items-center gap-x-2.5">
+              {auth?.tokens && auth.user
+                ? renderMenuItems(Menu)
+                : renderMenuItems(NONAUTHMenu)}
+                {headerMenus?.results?.map((item: any) => {
+                  return (
+                    <li>
+                      <Link
+                      to={item.menu.slug || "#"}
+                      className="text-title hover:text-white rounded-full py-1.5 px-3.5 flex items-center capitalize transition-all duration-300 hover:bg-gradient-to-r hover:from-yellow-700 hover:to-red-400 ease-linear"
+                    >
+                      {item.menu.name}
+                    </Link>
+                    </li>
+                  );
+                })}
+            </ul>
           </nav>
           {auth.tokens && auth.user ? (
             <div className="hidden lg:flex flex-row flex-wrap items-center">
@@ -96,13 +130,23 @@ export const Header = () => {
                   {auth?.user?.name}
                   <MdOutlineKeyboardArrowDown />
                   <div className="bg-[#0000] border border-primary rounded-br-[1.875rem] rounded-bl-[1.875rem] text-[#000] left-0 p-2 absolute text-center top-[2.975rem] w-full hidden group-focus:block xl:group-hover:block z-20">
-                    <Link className="text-title text-[0.688rem] uppercase block hover:text-secondary py-0.5" to={"/pay-history/"}>
+                    <Link
+                      className="text-title text-[0.688rem] uppercase block hover:text-secondary py-0.5"
+                      to={"/pay-history/"}
+                    >
                       Pay History
                     </Link>
-                    <Link className="text-title text-[0.688rem] uppercase block hover:text-secondary py-0.5" to={"/support/"}>
+                    <Link
+                      className="text-title text-[0.688rem] uppercase block hover:text-secondary py-0.5"
+                      to={"/support/"}
+                    >
                       Support
                     </Link>
-                    <button className="text-title text-[0.688rem] w-full uppercase block hover:text-secondary py-0.5 cursor-pointer" type="button" onClick={handleLogout}>
+                    <button
+                      className="text-title text-[0.688rem] w-full uppercase block hover:text-secondary py-0.5 cursor-pointer"
+                      type="button"
+                      onClick={handleLogout}
+                    >
                       Logout
                     </button>
                   </div>
@@ -125,8 +169,16 @@ export const Header = () => {
               </Link>
             </div>
           )}
-          <button className="block lg:hidden" type="button" onClick={() => setIsMenuShow(!isMenuShow)}>
-            {isMenuShow ? <IoCloseOutline className="text-3xl sm:text-4xl" /> : <RiMenu3Fill className="text-2xl sm:text-3xl" />}
+          <button
+            className="block lg:hidden"
+            type="button"
+            onClick={() => setIsMenuShow(!isMenuShow)}
+          >
+            {isMenuShow ? (
+              <IoCloseOutline className="text-3xl sm:text-4xl" />
+            ) : (
+              <RiMenu3Fill className="text-2xl sm:text-3xl" />
+            )}
           </button>
         </div>
         {isMenuShow && <MobileMenu setIsMenuShow={setIsMenuShow} />}

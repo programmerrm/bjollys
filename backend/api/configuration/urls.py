@@ -6,8 +6,19 @@ from api.configuration.views.website_name import WebsiteNameViewSet
 from api.configuration.views.copyright import CopyrightViewSet
 from api.configuration.views.social_link import SocialLinkViewSet
 from api.configuration.views.contact_info import ContactInfoViewSet
+from api.configuration.views.ticket import CreateTickerViewSet, TickerViewSet
 
 urlpatterns = [
+    path(
+        'create-ticker/',
+        CreateTickerViewSet.as_view({ 'post': 'create' }),
+        name='create_ticker',
+    ),
+    path(
+        'ticker/',
+        TickerViewSet.as_view({ 'get': 'list' }),
+        name='ticker',
+    ),
     path(
         'logo/',
         LogoViewSet.as_view({ 'get': 'list' }),

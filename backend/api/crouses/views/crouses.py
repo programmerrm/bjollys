@@ -3,12 +3,12 @@ import time
 import re
 from rest_framework import status, viewsets
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.http import StreamingHttpResponse, Http404
 from django.utils.http import http_date
 from django.core.paginator import Paginator
-from crouses.models import Ecommerce, Crypto, StockTrades, MarketUpdates, Education
-from api.crouses.serializers.crouses import EcommerceSerializer, CryptoSerializer, StockTradesSerializer, MarketUpdatesSerializer, EducationSerializer
+from crouses.models import Ecommerce, Crypto, StockTrades, MarketUpdates, Education, EcommerceSingleCourse
+from api.crouses.serializers.crouses import EcommerceSerializer, CryptoSerializer, StockTradesSerializer, MarketUpdatesSerializer, EducationSerializer, EcommerceSingleCourseSerializer
 from api.crouses.pagination.pagination import CustomePagination
 from rest_framework.pagination import PageNumberPagination
 
@@ -67,3 +67,15 @@ class EducationViewSet(viewsets.ViewSet):
         result_page = paginator.paginate_queryset(education_courses, request)
         serializer = EducationSerializer(result_page, many=True)
         return paginator.get_paginated_response(serializer.data)
+
+class EcommerceSingleCourseView(viewsets.ViewSet):
+    permission_classes = [AllowAny]
+
+    def list(self, request):
+        course = EcommerceSingleCourse.objects.first()
+        serializer = EcommerceSingleCourseSerializer(course)
+        return Response({
+            'success': True,
+            'message': 'E-commerce single course data fetched successfully',
+            'data': serializer.data,
+        }, status=status.HTTP_200_OK)

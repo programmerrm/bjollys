@@ -100,7 +100,6 @@ class CreateEcommerceStripeCheckoutSession(APIView):
     
 class PaymnetViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
-    parser_classes = []
 
     def list(self, request):
         payments = Payment.objects.filter(user=request.user).order_by('-id')

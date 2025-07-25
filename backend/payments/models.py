@@ -4,6 +4,9 @@ from django.utils import timezone
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from configuration.models import CryptoEmailTemplate, EcommerceEmailTemplate
 
 User = get_user_model()
 
@@ -106,14 +109,28 @@ class Subscription(models.Model):
         self.save()
 
     def send_activation_email(self):
-        subject = "Your Subscription is Activated!"
-        message = f"Dear {self.user.name},\n\nYour {self.subscription_type} subscription has been successfully activated."
-        recipient_email = self.user.email
+        if self.subscription_type == 'crypto':
+            template = CryptoEmailTemplate.objects.first()
+        else:
+            template = EcommerceEmailTemplate.objects.first()
+
+        subject = template.subject
+        html_message = render_to_string(
+            "emails/activated.html",
+            {
+                'username': self.user.name,
+                'email': self.user.email,
+                'template': template
+            }
+        )
+        plain_message = strip_tags(html_message)
+
         send_mail(
-            subject, 
-            message, 
-            settings.DEFAULT_FROM_EMAIL, 
-            [recipient_email],
+            subject,
+            plain_message,
+            settings.EMAIL_HOST_USER,
+            [self.user.email],
+            html_message=html_message,
         )
 
     def send_expiry_email(self):

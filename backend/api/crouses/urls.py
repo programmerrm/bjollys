@@ -4,6 +4,7 @@ from api.crouses.views.crouses import CryptoViewSet
 from api.crouses.views.crouses import EducationViewSet
 from api.crouses.views.crouses import StockTradesViewSet
 from api.crouses.views.crouses import MarketUpdatesViewSet
+from api.crouses.views.crouses import EcommerceSingleCourseView
 
 urlpatterns = [
     path(
@@ -30,5 +31,10 @@ urlpatterns = [
         'market/videos/',
         MarketUpdatesViewSet.as_view({ 'get': 'list' }),
         name='market_videos',
+    ),
+    path(
+        'e-commerce-single-course/',
+        EcommerceSingleCourseView.as_view({ 'get': 'list' }),
+        name='e-commerce_single_course',
     ),
 ]

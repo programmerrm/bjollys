@@ -38,6 +38,7 @@ urlpatterns = [
     path(f'{BASE_API}/crouses/', include('api.crouses.urls')),
     path(f'{BASE_API}/privacy-policy/', include('api.privacy_policy.urls')),
     path(f'{BASE_API}/terms-condition/', include('api.terms_conditions.urls')),
+    path(f'{BASE_API}/pages/', include('api.pages.urls')),
 
     path('ckeditor/', include('ckeditor_uploader.urls')),
     path(f'{BASE_API}/accounts/', include('api.accounts.urls')),

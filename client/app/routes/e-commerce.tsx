@@ -283,12 +283,12 @@ export default function Ecommerce() {
             })}
           </div>
           <div className="mt-5 flex items-center justify-center">
-            <button
-              type="button"
+            <Link
+              to="/single/course/"
               className="bg-secondary font-medium text-2xl lg:text-3xl rounded-full px-10 py-5 text-white cursor-pointer transition-all duration-300 ease-linear hover:bg-primary hover:text-title"
             >
               কোর্সে জয়েন করুন
-            </button>
+            </Link>
           </div>
         </div>
       </section>
@@ -312,7 +312,7 @@ export default function Ecommerce() {
                     <button
                       type="button"
                       onClick={() => handleEcommercePayment(item.price)}
-                      className="inline-block text-base md:text-lg font-semibold leading-normal text-white border border-transparent rounded-full py-3 px-6 bg-gradient-to-r from-[#384ef4] to-[#b060ed] text-center uppercase transition-all duration-500 ease-in-out hover:from-transparent hover:to-transparent hover:text-[#140751] hover:border hover:border-[#140751] cursor-pointer"
+                      className="bg-secondary font-medium text-base lg:text-xl rounded-full px-10 py-5 text-white cursor-pointer transition-all duration-300 ease-linear hover:bg-primary hover:text-title"
                     >
                       Buy Now
                     </button>

@@ -106,3 +106,51 @@ class Education(models.Model):
         MAX_SIZE = 2147483648
         if self.video and self.video.size > MAX_SIZE:
             raise ValidationError(_('The video file size cannot exceed 2GB.'))
+
+class EcommerceSingleCourse(models.Model):
+    image = models.ImageField(
+        null=True,
+        blank=True,
+        verbose_name=_('Course Image'),
+    )
+    title = models.CharField(
+        max_length=280,
+        null=True,
+        blank=True,
+        verbose_name=_('Course Name')
+    )
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            EcommerceSingleCourse.objects.all().delete()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.title or "Untitled Course"
+
+
+class SingleCourseBundle(models.Model):
+    course = models.ForeignKey(
+        EcommerceSingleCourse,
+        on_delete=models.CASCADE,
+        related_name='single_course_bundles',
+    )
+    bundle_name = models.CharField(
+        max_length=180,
+        verbose_name=_('Course Bundle Name')
+    )
+    price = models.PositiveIntegerField()
+    discount = models.PositiveIntegerField(default=0)
+
+    final_price = models.PositiveIntegerField(
+        editable=False,
+    )
+
+    def save(self, *args, **kwargs):
+        if not self.final_price or self.final_price > self.price:
+            self.final_price = self.price - (self.price * self.discount // 100)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.bundle_name} - {self.course.title}"
+    

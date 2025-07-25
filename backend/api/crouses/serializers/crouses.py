@@ -1,5 +1,16 @@
 from rest_framework import serializers
-from crouses.models import Ecommerce, Crypto, StockTrades, MarketUpdates, Education
+from crouses.models import Ecommerce, Crypto, StockTrades, MarketUpdates, Education, EcommerceSingleCourse, SingleCourseBundle
+
+class SingleCourseBundleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SingleCourseBundle
+        fields = '__all__'
+
+class EcommerceSingleCourseSerializer(serializers.ModelSerializer):
+    single_course_bundles = SingleCourseBundleSerializer(many=True, read_only=True)
+    class Meta:
+        model = EcommerceSingleCourse
+        fields = '__all__'
 
 class EcommerceSerializer(serializers.ModelSerializer):
     class Meta:

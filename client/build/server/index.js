@@ -1,7 +1,7 @@
 import { jsx, jsxs, Fragment } from "react/jsx-runtime";
 import { PassThrough } from "node:stream";
-import { createReadableStreamFromReadable } from "@remix-run/node";
-import { RemixServer, useNavigate, Link, Meta, Links, ScrollRestoration, Scripts, Outlet, useParams } from "@remix-run/react";
+import { createReadableStreamFromReadable, json } from "@remix-run/node";
+import { RemixServer, useNavigate, Link, Meta, Links, ScrollRestoration, Scripts, Outlet, useParams, useLoaderData } from "@remix-run/react";
 import { isbot } from "isbot";
 import { renderToPipeableStream } from "react-dom/server";
 import { useDispatch, useSelector, Provider } from "react-redux";
@@ -21,7 +21,6 @@ import dayjs from "dayjs";
 import advancedFormat from "dayjs/plugin/advancedFormat.js";
 import timezone from "dayjs/plugin/timezone.js";
 import utc from "dayjs/plugin/utc.js";
-import { toast } from "react-toastify";
 import relativeTime from "dayjs/plugin/relativeTime.js";
 import ResponsivePagination from "react-responsive-pagination";
 import CountryList from "country-list";
@@ -124,8 +123,8 @@ const entryServer = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineP
   __proto__: null,
   default: handleRequest
 }, Symbol.toStringTag, { value: "Module" }));
-const MEDIA_URL = "https://api.bjollys.net/";
-const SERVER_URL = "https://api.bjollys.net/api/v1";
+const MEDIA_URL = void 0;
+const SERVER_URL = void 0;
 let initialState = {
   user: null,
   tokens: {
@@ -452,7 +451,19 @@ const Menu = [
     icon: void 0
   }
 ];
+const pagesApi = apiSlice.injectEndpoints({
+  endpoints: (builder) => ({
+    getPages: builder.query({
+      query: () => "/pages/all/"
+    })
+  })
+});
+const { useGetPagesQuery } = pagesApi;
 const MobileMenu = ({ setIsMenuShow }) => {
+  var _a, _b;
+  const { data: headerMenus } = useGetPagesQuery(void 0, {
+    refetchOnMountOrArgChange: true
+  });
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const auth = useSelector((state) => state.auth);
@@ -471,75 +482,101 @@ const MobileMenu = ({ setIsMenuShow }) => {
     setIsMenuShow(false);
   };
   return /* @__PURE__ */ jsxs("div", { className: "flex flex-col flex-wrap w-full gap-y-2.5 py-5", children: [
-    /* @__PURE__ */ jsx("nav", { className: "flex flex-col flex-wrap py-1.5 px-2.5 rounded-xl text-white bg-section-title", children: /* @__PURE__ */ jsx("ul", { className: "flex flex-col flex-wrap items-center gap-y-2.5", children: (auth == null ? void 0 : auth.tokens) && auth.user ? /* @__PURE__ */ jsx(Fragment, { children: Menu == null ? void 0 : Menu.map((item) => {
-      var _a;
-      return /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsxs(
-        Link,
-        {
-          className: "rounded-full text-title py-1.5 px-3.5 flex flex-row flex-wrap items-center capitalize transition-all duration-500 hover:bg-gradient-to-r hover:from-yellow-700 hover:to-red-400",
-          to: item.path ? item.path : "#",
-          onClick: ((_a = item.path) == null ? void 0 : _a.startsWith("/#")) ? () => handleSmoothScroll(item.path || "") : void 0,
-          children: [
-            item.icon && item.icon,
-            item.name
-          ]
-        }
-      ) }, item.id);
-    }) }) : /* @__PURE__ */ jsx(Fragment, { children: NONAUTHMenu == null ? void 0 : NONAUTHMenu.map((item) => {
-      var _a;
-      return /* @__PURE__ */ jsx("li", { children: item.name === "channels" ? /* @__PURE__ */ jsxs(
-        "button",
-        {
-          type: "button",
-          onClick: () => {
-            dispatch(openChannel());
-            setIsMenuShow(false);
-          },
-          className: "rounded-full text-title py-1.5 px-3.5 flex items-center capitalize transition-all duration-500 hover:bg-gradient-to-r  hover:from-yellow-700 hover:to-red-400 cursor-pointer",
-          children: [
-            item.icon && item.icon,
-            item.name
-          ]
-        }
-      ) : ((_a = item.path) == null ? void 0 : _a.startsWith("/#")) ? /* @__PURE__ */ jsxs(
-        "button",
-        {
-          type: "button",
-          onClick: () => {
-            navigate("/");
-            setTimeout(() => {
-              if (item.path) {
-                const element = document.getElementById(item.path.replace("/#", ""));
-                if (element) {
-                  element.scrollIntoView({ behavior: "smooth" });
+    /* @__PURE__ */ jsx("nav", { className: "flex flex-col flex-wrap py-1.5 px-2.5 rounded-xl text-white bg-section-title", children: /* @__PURE__ */ jsx("ul", { className: "flex flex-col flex-wrap items-center gap-y-2.5", children: (auth == null ? void 0 : auth.tokens) && auth.user ? /* @__PURE__ */ jsxs(Fragment, { children: [
+      Menu == null ? void 0 : Menu.map((item) => {
+        var _a2;
+        return /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsxs(
+          Link,
+          {
+            className: "rounded-full text-title py-1.5 px-3.5 flex flex-row flex-wrap items-center capitalize transition-all duration-500 hover:bg-gradient-to-r hover:from-yellow-700 hover:to-red-400",
+            to: item.path ? item.path : "#",
+            onClick: ((_a2 = item.path) == null ? void 0 : _a2.startsWith("/#")) ? () => handleSmoothScroll(item.path || "") : void 0,
+            children: [
+              item.icon && item.icon,
+              item.name
+            ]
+          }
+        ) }, item.id);
+      }),
+      (_a = headerMenus == null ? void 0 : headerMenus.results) == null ? void 0 : _a.map((item) => {
+        return /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsx(
+          Link,
+          {
+            to: item.menu.slug || "#",
+            className: "text-title hover:text-white rounded-full py-1.5 px-3.5 flex items-center capitalize transition-all duration-300 hover:bg-gradient-to-r hover:from-yellow-700 hover:to-red-400 ease-linear",
+            onClick: handleMenuClose,
+            children: item.menu.name
+          }
+        ) });
+      })
+    ] }) : /* @__PURE__ */ jsxs(Fragment, { children: [
+      NONAUTHMenu == null ? void 0 : NONAUTHMenu.map((item) => {
+        var _a2;
+        return /* @__PURE__ */ jsx("li", { children: item.name === "channels" ? /* @__PURE__ */ jsxs(
+          "button",
+          {
+            type: "button",
+            onClick: () => {
+              dispatch(openChannel());
+              setIsMenuShow(false);
+            },
+            className: "rounded-full text-title py-1.5 px-3.5 flex items-center capitalize transition-all duration-500 hover:bg-gradient-to-r  hover:from-yellow-700 hover:to-red-400 cursor-pointer",
+            children: [
+              item.icon && item.icon,
+              item.name
+            ]
+          }
+        ) : ((_a2 = item.path) == null ? void 0 : _a2.startsWith("/#")) ? /* @__PURE__ */ jsxs(
+          "button",
+          {
+            type: "button",
+            onClick: () => {
+              navigate("/");
+              setTimeout(() => {
+                if (item.path) {
+                  const element = document.getElementById(item.path.replace("/#", ""));
+                  if (element) {
+                    element.scrollIntoView({ behavior: "smooth" });
+                  }
                 }
-              }
-            }, 100);
-            setIsMenuShow(false);
-          },
-          className: "rounded-full text-title py-1.5 px-3.5 flex items-center capitalize transition-all duration-500 hover:bg-gradient-to-r  hover:from-yellow-700 hover:to-red-400 cursor-pointer",
-          children: [
-            item.icon && item.icon,
-            item.name
-          ]
-        }
-      ) : /* @__PURE__ */ jsxs(
-        Link,
-        {
-          to: item.path || "#",
-          className: "rounded-full text-title py-1.5 px-3.5 flex items-center capitalize transition-all duration-500 hover:bg-gradient-to-r  hover:from-yellow-700 hover:to-red-400",
-          onClick: handleMenuClose,
-          children: [
-            item.icon && item.icon,
-            item.name
-          ]
-        }
-      ) }, item.id);
-    }) }) }) }),
+              }, 100);
+              setIsMenuShow(false);
+            },
+            className: "rounded-full text-title py-1.5 px-3.5 flex items-center capitalize transition-all duration-500 hover:bg-gradient-to-r  hover:from-yellow-700 hover:to-red-400 cursor-pointer",
+            children: [
+              item.icon && item.icon,
+              item.name
+            ]
+          }
+        ) : /* @__PURE__ */ jsxs(
+          Link,
+          {
+            to: item.path || "#",
+            className: "rounded-full text-title py-1.5 px-3.5 flex items-center capitalize transition-all duration-500 hover:bg-gradient-to-r  hover:from-yellow-700 hover:to-red-400",
+            onClick: handleMenuClose,
+            children: [
+              item.icon && item.icon,
+              item.name
+            ]
+          }
+        ) }, item.id);
+      }),
+      (_b = headerMenus == null ? void 0 : headerMenus.results) == null ? void 0 : _b.map((item) => {
+        return /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsx(
+          Link,
+          {
+            to: item.menu.slug || "#",
+            className: "text-title hover:text-white rounded-full py-1.5 px-3.5 flex items-center capitalize transition-all duration-300 hover:bg-gradient-to-r hover:from-yellow-700 hover:to-red-400 ease-linear",
+            onClick: handleMenuClose,
+            children: item.menu.name
+          }
+        ) });
+      })
+    ] }) }) }),
     auth.tokens && auth.user ? /* @__PURE__ */ jsxs("div", { className: "flex flex-row flex-wrap items-center justify-center", children: [
       /* @__PURE__ */ jsx(Link, { className: "p-2.5", to: "/", onClick: handleMenuClose, children: /* @__PURE__ */ jsx(IoMdNotifications2, { className: "text-2xl" }) }),
       /* @__PURE__ */ jsx("div", { className: "relative", children: /* @__PURE__ */ jsxs("button", { className: "text-sm py-[0.688rem] px-[2.125rem] rounded-[1.875rem] uppercase text-white border border-secondary bg-secondary transition-all duration-[0.3s] flex items-center gap-2 leading-normal font-normal cursor-pointer focus:bg-[#0000] xl:hover:bg-[#0000] xl:hover:border-[#8c8888] focus:border-[#8c8888] xl:hover:text-black focus:text-black xl:hover:rounded-tl-[1.875rem] focus:rounded-tl-[1.875rem] xl:hover:rounded-tr-[1.875rem] focus:rounded-tr-[1.875rem] xl:hover:rounded-bl-none focus:rounded-bl-none xl:hover:rounded-br-none focus:rounded-br-none group font-nunito", children: [
-        "Rasel hossai ...",
+        auth.user.name,
         /* @__PURE__ */ jsx(MdOutlineKeyboardArrowDown2, {}),
         /* @__PURE__ */ jsxs("div", { className: "bg-[#0000] border border-[#8c8888] rounded-br-[1.875rem] rounded-bl-[1.875rem] text-[#000] left-0 p-2 absolute text-center top-[2.975rem] w-full hidden group-focus:block xl:group-hover:block", children: [
           /* @__PURE__ */ jsx(Link, { className: "text-title text-[0.688rem] uppercase block transition-all duration-[0.3s] ease-in-out hover:text-secondary py-0.5", to: "/pay-history/", onClick: handleMenuClose, children: "Pay History" }),
@@ -562,10 +599,18 @@ const MobileMenu = ({ setIsMenuShow }) => {
   ] });
 };
 const Header = () => {
-  var _a, _b;
+  var _a, _b, _c;
   const [isMenuShow, setIsMenuShow] = useState(false);
-  const { IoMdNotifications: IoMdNotifications2, MdOutlineKeyboardArrowDown: MdOutlineKeyboardArrowDown2, RiMenu3Fill: RiMenu3Fill2, IoCloseOutline: IoCloseOutline2 } = ReactIcons;
+  const {
+    IoMdNotifications: IoMdNotifications2,
+    MdOutlineKeyboardArrowDown: MdOutlineKeyboardArrowDown2,
+    RiMenu3Fill: RiMenu3Fill2,
+    IoCloseOutline: IoCloseOutline2
+  } = ReactIcons;
   const { data } = useGetLogoQuery(void 0, {
+    refetchOnMountOrArgChange: true
+  });
+  const { data: headerMenus } = useGetPagesQuery(void 0, {
     refetchOnMountOrArgChange: true
   });
   const Logo = (_a = data == null ? void 0 : data.data) == null ? void 0 : _a.logo;
@@ -611,7 +656,7 @@ const Header = () => {
           item.name
         ]
       }
-    ) : /* @__PURE__ */ jsxs(
+    ) : /* @__PURE__ */ jsx(Fragment, { children: /* @__PURE__ */ jsxs(
       Link,
       {
         to: item.path || "#",
@@ -621,12 +666,33 @@ const Header = () => {
           item.name
         ]
       }
-    ) }, item.id);
+    ) }) }, item.id);
   });
   return /* @__PURE__ */ jsx("header", { className: "relative top-0 left-0 right-0 py-5 w-full", children: /* @__PURE__ */ jsxs("div", { className: "max-w-screen-2xl container mx-auto px-2.5 lg:px-5 w-full", children: [
     /* @__PURE__ */ jsxs("div", { className: "flex flex-row flex-wrap items-center justify-between w-full", children: [
-      /* @__PURE__ */ jsx(Link, { className: "block w-fit", to: "/", children: /* @__PURE__ */ jsx("img", { className: "w-28 sm:w-28 md:w-32 lg:w-40", src: `${MEDIA_URL}${Logo}`, alt: "bijolis", loading: "lazy", decoding: "async" }) }),
-      /* @__PURE__ */ jsx("nav", { className: "hidden lg:flex flex-col flex-wrap py-1.5 px-2.5 rounded-full text-white bg-section-title", children: /* @__PURE__ */ jsx("ul", { className: "flex flex-row flex-wrap items-center gap-x-2.5", children: (auth == null ? void 0 : auth.tokens) && auth.user ? renderMenuItems(Menu) : renderMenuItems(NONAUTHMenu) }) }),
+      /* @__PURE__ */ jsx(Link, { className: "block w-fit", to: "/", children: /* @__PURE__ */ jsx(
+        "img",
+        {
+          className: "w-28 sm:w-28 md:w-32 lg:w-40",
+          src: `${MEDIA_URL}${Logo}`,
+          alt: "bijolis",
+          loading: "lazy",
+          decoding: "async"
+        }
+      ) }),
+      /* @__PURE__ */ jsx("nav", { className: "hidden lg:flex flex-col flex-wrap py-1.5 px-2.5 rounded-full text-white bg-section-title", children: /* @__PURE__ */ jsxs("ul", { className: "flex flex-row flex-wrap items-center gap-x-2.5", children: [
+        (auth == null ? void 0 : auth.tokens) && auth.user ? renderMenuItems(Menu) : renderMenuItems(NONAUTHMenu),
+        (_b = headerMenus == null ? void 0 : headerMenus.results) == null ? void 0 : _b.map((item) => {
+          return /* @__PURE__ */ jsx("li", { children: /* @__PURE__ */ jsx(
+            Link,
+            {
+              to: item.menu.slug || "#",
+              className: "text-title hover:text-white rounded-full py-1.5 px-3.5 flex items-center capitalize transition-all duration-300 hover:bg-gradient-to-r hover:from-yellow-700 hover:to-red-400 ease-linear",
+              children: item.menu.name
+            }
+          ) });
+        })
+      ] }) }),
       auth.tokens && auth.user ? /* @__PURE__ */ jsxs("div", { className: "hidden lg:flex flex-row flex-wrap items-center", children: [
         /* @__PURE__ */ jsx(Link, { className: "p-2.5", to: "/", children: /* @__PURE__ */ jsx(IoMdNotifications2, { className: "text-2xl" }) }),
         /* @__PURE__ */ jsx("div", { className: "relative", children: /* @__PURE__ */ jsxs(
@@ -635,12 +701,34 @@ const Header = () => {
             role: "button",
             className: "py-[0.688rem] px-[2.125rem] pr-6 rounded-[1.875rem] uppercase text-white border border-secondary bg-secondary transition-all duration-[0.3s] flex items-center text-base leading-normal font-normal cursor-pointer focus:bg-[#0000] xl:hover:bg-[#0000] xl:hover:border-primary focus:border-primary xl:hover:text-black focus:text-black xl:hover:rounded-tl-[1.875rem] focus:rounded-tl-[1.875rem] xl:hover:rounded-tr-[1.875rem] focus:rounded-tr-[1.875rem] xl:hover:rounded-bl-none focus:rounded-bl-none xl:hover:rounded-br-none focus:rounded-br-none group font-nunito",
             children: [
-              (_b = auth == null ? void 0 : auth.user) == null ? void 0 : _b.name,
+              (_c = auth == null ? void 0 : auth.user) == null ? void 0 : _c.name,
               /* @__PURE__ */ jsx(MdOutlineKeyboardArrowDown2, {}),
               /* @__PURE__ */ jsxs("div", { className: "bg-[#0000] border border-primary rounded-br-[1.875rem] rounded-bl-[1.875rem] text-[#000] left-0 p-2 absolute text-center top-[2.975rem] w-full hidden group-focus:block xl:group-hover:block z-20", children: [
-                /* @__PURE__ */ jsx(Link, { className: "text-title text-[0.688rem] uppercase block hover:text-secondary py-0.5", to: "/pay-history/", children: "Pay History" }),
-                /* @__PURE__ */ jsx(Link, { className: "text-title text-[0.688rem] uppercase block hover:text-secondary py-0.5", to: "/support/", children: "Support" }),
-                /* @__PURE__ */ jsx("button", { className: "text-title text-[0.688rem] w-full uppercase block hover:text-secondary py-0.5 cursor-pointer", type: "button", onClick: handleLogout, children: "Logout" })
+                /* @__PURE__ */ jsx(
+                  Link,
+                  {
+                    className: "text-title text-[0.688rem] uppercase block hover:text-secondary py-0.5",
+                    to: "/pay-history/",
+                    children: "Pay History"
+                  }
+                ),
+                /* @__PURE__ */ jsx(
+                  Link,
+                  {
+                    className: "text-title text-[0.688rem] uppercase block hover:text-secondary py-0.5",
+                    to: "/support/",
+                    children: "Support"
+                  }
+                ),
+                /* @__PURE__ */ jsx(
+                  "button",
+                  {
+                    className: "text-title text-[0.688rem] w-full uppercase block hover:text-secondary py-0.5 cursor-pointer",
+                    type: "button",
+                    onClick: handleLogout,
+                    children: "Logout"
+                  }
+                )
               ] })
             ]
           }
@@ -663,7 +751,15 @@ const Header = () => {
           }
         )
       ] }),
-      /* @__PURE__ */ jsx("button", { className: "block lg:hidden", type: "button", onClick: () => setIsMenuShow(!isMenuShow), children: isMenuShow ? /* @__PURE__ */ jsx(IoCloseOutline2, { className: "text-3xl sm:text-4xl" }) : /* @__PURE__ */ jsx(RiMenu3Fill2, { className: "text-2xl sm:text-3xl" }) })
+      /* @__PURE__ */ jsx(
+        "button",
+        {
+          className: "block lg:hidden",
+          type: "button",
+          onClick: () => setIsMenuShow(!isMenuShow),
+          children: isMenuShow ? /* @__PURE__ */ jsx(IoCloseOutline2, { className: "text-3xl sm:text-4xl" }) : /* @__PURE__ */ jsx(RiMenu3Fill2, { className: "text-2xl sm:text-3xl" })
+        }
+      )
     ] }),
     isMenuShow && /* @__PURE__ */ jsx(MobileMenu, { setIsMenuShow })
   ] }) });
@@ -1275,27 +1371,6 @@ const route4 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProper
   __proto__: null,
   default: CryptoSubscription
 }, Symbol.toStringTag, { value: "Module" }));
-function Dashboard$1() {
-  return /* @__PURE__ */ jsx("section", { className: "min-h-screen pb-5 px-4 flex flex-col bg-white", children: /* @__PURE__ */ jsxs("div", { className: "flex flex-col lg:flex-row gap-8 lg:gap-5 grow", children: [
-    /* @__PURE__ */ jsx("div", { className: "rounded-2xl overflow-hidden flex-1/2 grow flex flex-col", children: /* @__PURE__ */ jsx("img", { className: "transition-all duration-300 ease-linear hover:scale-[1.1] h-full grow", src: "", alt: "" }) }),
-    /* @__PURE__ */ jsxs("div", { className: "flex-1/2 lg:self-center", children: [
-      /* @__PURE__ */ jsx("h2", { className: "text-2xl text-left font-semibold mb-2", children: "Amazon Course Bundle" }),
-      /* @__PURE__ */ jsxs("div", { className: "mb-4", children: [
-        /* @__PURE__ */ jsx("span", { className: "line-through text-gray-400 mr-2", children: "AED 1,100.00" }),
-        /* @__PURE__ */ jsx("span", { className: "text-red-600 font-bold text-xl", children: "AED 850.00" })
-      ] }),
-      /* @__PURE__ */ jsxs("div", { className: "mb-4", children: [
-        /* @__PURE__ */ jsx("label", { className: "block mb-2 font-medium", children: "Course Bundle:" }),
-        /* @__PURE__ */ jsx("div", { className: "flex flex-wrap gap-2", children: ["Online Course", "Offline Course", "1 by 1 Course", "Full Course with Products", "Business package with Noon & Amazon"].map((label, idx) => /* @__PURE__ */ jsx("button", { className: "px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-sm transition", children: label }, idx)) })
-      ] }),
-      /* @__PURE__ */ jsx("div", { className: "flex items-center gap-4 mt-6", children: /* @__PURE__ */ jsx("button", { className: "bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold transition", children: "Buy Now" }) })
-    ] })
-  ] }) });
-}
-const route5 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
-  __proto__: null,
-  default: Dashboard$1
-}, Symbol.toStringTag, { value: "Module" }));
 function ForgotPassword() {
   const {
     register,
@@ -1351,7 +1426,7 @@ function ForgotPassword() {
     ] }) })
   ] }) }) }) });
 }
-const route6 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const route5 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: ForgotPassword
 }, Symbol.toStringTag, { value: "Module" }));
@@ -1365,7 +1440,7 @@ function PaymentSuccess() {
     ] })
   ] }) });
 }
-const route7 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const route6 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: PaymentSuccess
 }, Symbol.toStringTag, { value: "Module" }));
@@ -1379,7 +1454,7 @@ function PaymentCancel() {
     ] })
   ] }) });
 }
-const route8 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const route7 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: PaymentCancel
 }, Symbol.toStringTag, { value: "Module" }));
@@ -1404,9 +1479,128 @@ function PrivacyPolicy() {
     }
   ) }) });
 }
-const route9 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const route8 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: PrivacyPolicy
+}, Symbol.toStringTag, { value: "Module" }));
+const crousesApi = apiSlice.injectEndpoints({
+  endpoints: (builder) => ({
+    getEcommerceCrouses: builder.query({
+      query: (pageNumber) => `/crouses/ecommerce/videos/?page=${pageNumber}`
+    }),
+    getCryptoTradesVideo: builder.query({
+      query: (pageNumber) => `/crouses/crypto/videos/?page=${pageNumber}`
+    }),
+    getStockCommoditiesTradesVideo: builder.query({
+      query: (pageNumber) => `/crouses/stock/videos/?page=${pageNumber}`
+    }),
+    getGetMarketUpdatesVideo: builder.query({
+      query: (pageNumber) => `/crouses/market/videos/?page=${pageNumber}`
+    }),
+    getGetEducationVideo: builder.query({
+      query: (pageNumber) => `/crouses/education/videos/?page=${pageNumber}`
+    }),
+    getSingleEcommerceCrouses: builder.query({
+      query: () => "/crouses/e-commerce-single-course/"
+    })
+  })
+});
+const {
+  useGetEcommerceCrousesQuery,
+  useGetCryptoTradesVideoQuery,
+  useGetStockCommoditiesTradesVideoQuery,
+  useGetGetMarketUpdatesVideoQuery,
+  useGetGetEducationVideoQuery,
+  useGetSingleEcommerceCrousesQuery
+} = crousesApi;
+function Dashboard$1() {
+  const navigate = useNavigate();
+  const auth = useSelector((state) => state.auth);
+  const { data } = useGetSingleEcommerceCrousesQuery(void 0, {
+    refetchOnMountOrArgChange: true
+  });
+  const courseData = data == null ? void 0 : data.data;
+  const bundles = (courseData == null ? void 0 : courseData.single_course_bundles) || [];
+  const [activeBundle, setActiveBundle] = useState(null);
+  useEffect(() => {
+    if (bundles.length > 0) {
+      setActiveBundle(bundles[0]);
+    }
+  }, [bundles]);
+  const [createCheckoutSession, { isLoading }] = useCreateEcommerceCheckoutSessionMutation();
+  const handleEcommercePayment = async (price) => {
+    if (!(auth == null ? void 0 : auth.user)) return navigate("/login/");
+    if (!price) {
+      alert("No bundle selected.");
+      return;
+    }
+    try {
+      const res = await createCheckoutSession({
+        amount: price * 100,
+        currency: "usd"
+      }).unwrap();
+      if (res.url) {
+        window.location.href = res.url;
+      } else {
+        alert("Something went wrong. No URL received.");
+      }
+    } catch (err) {
+      console.error("Payment Error:", err);
+      alert("Payment failed. Please try again.");
+    }
+  };
+  return /* @__PURE__ */ jsx("section", { className: "min-h-screen pb-5 px-4 flex flex-col bg-white", children: /* @__PURE__ */ jsxs("div", { className: "flex flex-col lg:flex-row gap-8 lg:gap-5 grow", children: [
+    /* @__PURE__ */ jsx("div", { className: "rounded-2xl overflow-hidden flex-1/2 grow flex flex-col", children: /* @__PURE__ */ jsx(
+      "img",
+      {
+        className: "transition-all duration-300 ease-linear hover:scale-[1.1] h-full grow cursor-pointer",
+        src: `${MEDIA_URL}${courseData == null ? void 0 : courseData.image}`,
+        alt: courseData == null ? void 0 : courseData.title
+      }
+    ) }),
+    /* @__PURE__ */ jsxs("div", { className: "flex-1/2 lg:self-center", children: [
+      /* @__PURE__ */ jsx("h2", { className: "text-2xl text-left font-semibold mb-2", children: courseData == null ? void 0 : courseData.title }),
+      activeBundle && /* @__PURE__ */ jsxs("div", { className: "mb-4", children: [
+        /* @__PURE__ */ jsxs("span", { className: "line-through text-gray-400 mr-2", children: [
+          "USD $",
+          activeBundle.price
+        ] }),
+        /* @__PURE__ */ jsxs("span", { className: "text-red-600 font-bold text-xl", children: [
+          "USD $",
+          activeBundle.final_price
+        ] })
+      ] }),
+      /* @__PURE__ */ jsxs("div", { className: "mb-4", children: [
+        /* @__PURE__ */ jsx("label", { className: "block mb-2 font-medium", children: "Course Bundle:" }),
+        /* @__PURE__ */ jsx("div", { className: "flex flex-wrap gap-2", children: bundles.map((bundle) => /* @__PURE__ */ jsx(
+          "button",
+          {
+            onClick: () => setActiveBundle(bundle),
+            className: `px-4 py-2 rounded-md text-sm transition border cursor-pointer ${(activeBundle == null ? void 0 : activeBundle.id) === bundle.id ? "bg-green-600 text-white" : "bg-gray-100 hover:bg-gray-200"}`,
+            children: bundle.bundle_name
+          },
+          bundle.id
+        )) })
+      ] }),
+      /* @__PURE__ */ jsx("div", { className: "flex items-center gap-4 mt-6", children: /* @__PURE__ */ jsx(
+        "button",
+        {
+          className: "bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold transition cursor-pointer",
+          onClick: () => {
+            if (activeBundle) {
+              handleEcommercePayment(activeBundle.final_price);
+            }
+          },
+          disabled: isLoading || !activeBundle,
+          children: isLoading ? "Processing..." : "Buy Now"
+        }
+      ) })
+    ] })
+  ] }) });
+}
+const route9 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: Dashboard$1
 }, Symbol.toStringTag, { value: "Module" }));
 function Subscription() {
   var _a, _b, _c;
@@ -1489,7 +1683,7 @@ function PayHistory() {
     if ((data == null ? void 0 : data.previous) && page > 1) setPage((prev) => prev - 1);
   };
   return /* @__PURE__ */ jsx("section", { className: "py-6", children: /* @__PURE__ */ jsxs("div", { className: "container", children: [
-    /* @__PURE__ */ jsx("h1", { className: "text-center text-[2rem] font-semibold leading-[1.4] text-title mb-[1.125rem] md:text-[2.625rem]", children: "Subscription History" }),
+    /* @__PURE__ */ jsx("h1", { className: "text-center text-[2rem] font-semibold leading-[1.4] text-title mb-[1.125rem] md:text-[2.625rem]", children: "Payment History" }),
     /* @__PURE__ */ jsxs("div", { className: "p-4 mb-2", children: [
       /* @__PURE__ */ jsx("div", { className: "overflow-x-auto", children: /* @__PURE__ */ jsxs("table", { className: "w-full mb-4", children: [
         /* @__PURE__ */ jsx("thead", { children: /* @__PURE__ */ jsxs("tr", { className: "bg-[#f6f6f6]", children: [
@@ -1542,38 +1736,6 @@ const route11 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePrope
   __proto__: null,
   default: PayHistory
 }, Symbol.toStringTag, { value: "Module" }));
-const BookingForm = () => {
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors }
-  } = useForm();
-  const onSubmitForm = async (formData) => {
-    try {
-      reset();
-      toast.success("Booking successfully submitted!");
-    } catch (err) {
-      console.error("Error during booking:", err);
-      toast.error("Failed to submit booking. Please try again.");
-    }
-  };
-  return /* @__PURE__ */ jsxs("form", { className: "bg-secondary p-2.5 flex flex-col gap-2.5", onSubmit: handleSubmit(onSubmitForm), children: [
-    /* @__PURE__ */ jsx(Field, { label: "", error: errors.name, children: /* @__PURE__ */ jsx("input", { ...register("name", {
-      required: "Name is required"
-    }), className: "rounded-none border border-title p-2.5 text-title", type: "text", placeholder: "Name" }) }),
-    /* @__PURE__ */ jsx(Field, { label: "", error: errors.number, children: /* @__PURE__ */ jsx("input", { ...register("number", {
-      required: "Whatsapp number is required"
-    }), className: "rounded-none border border-title p-2.5 text-title", type: "text", placeholder: "What'sApp number" }) }),
-    /* @__PURE__ */ jsx(Field, { label: "", error: errors.country_name, children: /* @__PURE__ */ jsx("input", { ...register("country_name", {
-      required: "Country name is required"
-    }), className: "rounded-none border border-title p-2.5 text-title", type: "text", placeholder: "Country Name" }) }),
-    /* @__PURE__ */ jsx(Field, { label: "", error: errors.message, children: /* @__PURE__ */ jsx("input", { ...register("message", {
-      required: "Message is required"
-    }), className: "rounded-none border border-title p-2.5 text-title", type: "text", placeholder: "Message" }) }),
-    /* @__PURE__ */ jsx("button", { className: "p-2.5 rounded-none text-xl font-medium text-white", type: "submit", children: "Send" })
-  ] });
-};
 const ecommerceApi = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getEcommerceImage: builder.query({
@@ -1601,10 +1763,10 @@ const ecommerceApi = apiSlice.injectEndpoints({
       query: () => "/e-commerce/whatsapp-number/"
     }),
     addBooking: builder.mutation({
-      query: (newBookingData) => ({
+      query: (bookingData) => ({
         url: "/e-commerce/booking/",
         method: "POST",
-        body: newBookingData
+        body: bookingData
       })
     })
   })
@@ -1620,6 +1782,40 @@ const {
   useGetEcommerceWhatsappNumberQuery,
   useAddBookingMutation
 } = ecommerceApi;
+const BookingForm = () => {
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors }
+  } = useForm();
+  const [addBooking] = useAddBookingMutation();
+  const onSubmitForm = async (formData) => {
+    try {
+      await addBooking(formData).unwrap();
+      reset();
+      alert("Booking successfully submitted!");
+    } catch (err) {
+      console.error("Error during booking:", err);
+      alert("Failed to submit booking. Please try again.");
+    }
+  };
+  return /* @__PURE__ */ jsxs("form", { className: "bg-secondary p-2.5 flex flex-col gap-2.5", onSubmit: handleSubmit(onSubmitForm), children: [
+    /* @__PURE__ */ jsx(Field, { label: "", error: errors.name, children: /* @__PURE__ */ jsx("input", { ...register("name", {
+      required: "Name is required"
+    }), className: "rounded-none border border-title p-2.5 text-title", type: "text", placeholder: "Name" }) }),
+    /* @__PURE__ */ jsx(Field, { label: "", error: errors.number, children: /* @__PURE__ */ jsx("input", { ...register("number", {
+      required: "Whatsapp number is required"
+    }), className: "rounded-none border border-title p-2.5 text-title", type: "text", placeholder: "What'sApp number" }) }),
+    /* @__PURE__ */ jsx(Field, { label: "", error: errors.country_name, children: /* @__PURE__ */ jsx("input", { ...register("country_name", {
+      required: "Country name is required"
+    }), className: "rounded-none border border-title p-2.5 text-title", type: "text", placeholder: "Country Name" }) }),
+    /* @__PURE__ */ jsx(Field, { label: "", error: errors.message, children: /* @__PURE__ */ jsx("input", { ...register("message", {
+      required: "Message is required"
+    }), className: "rounded-none border border-title p-2.5 text-title", type: "text", placeholder: "Message" }) }),
+    /* @__PURE__ */ jsx("button", { className: "p-2.5 rounded-none text-xl font-medium text-white", type: "submit", children: "Send" })
+  ] });
+};
 const LEFTIMG = "/assets/Lets-Grow-Together-B6CbRj7l.png";
 const ULT = "/assets/Untitled-design-47-BGHkhlWw.png";
 function Ecommerce() {
@@ -1830,9 +2026,9 @@ function Ecommerce() {
         ] }, item.id);
       }) }),
       /* @__PURE__ */ jsx("div", { className: "mt-5 flex items-center justify-center", children: /* @__PURE__ */ jsx(
-        "button",
+        Link,
         {
-          type: "button",
+          to: "/single/course/",
           className: "bg-secondary font-medium text-2xl lg:text-3xl rounded-full px-10 py-5 text-white cursor-pointer transition-all duration-300 ease-linear hover:bg-primary hover:text-title",
           children: "কোর্সে জয়েন করুন"
         }
@@ -1859,7 +2055,7 @@ function Ecommerce() {
                   {
                     type: "button",
                     onClick: () => handleEcommercePayment(item.price),
-                    className: "inline-block text-base md:text-lg font-semibold leading-normal text-white border border-transparent rounded-full py-3 px-6 bg-gradient-to-r from-[#384ef4] to-[#b060ed] text-center uppercase transition-all duration-500 ease-in-out hover:from-transparent hover:to-transparent hover:text-[#140751] hover:border hover:border-[#140751] cursor-pointer",
+                    className: "bg-secondary font-medium text-base lg:text-xl rounded-full px-10 py-5 text-white cursor-pointer transition-all duration-300 ease-linear hover:bg-primary hover:text-title",
                     children: "Buy Now"
                   }
                 )
@@ -1877,32 +2073,6 @@ const route12 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePrope
   __proto__: null,
   default: Ecommerce
 }, Symbol.toStringTag, { value: "Module" }));
-const crousesApi = apiSlice.injectEndpoints({
-  endpoints: (builder) => ({
-    getEcommerceCrouses: builder.query({
-      query: (pageNumber) => `/crouses/ecommerce/videos/?page=${pageNumber}`
-    }),
-    getCryptoTradesVideo: builder.query({
-      query: (pageNumber) => `/crouses/crypto/videos/?page=${pageNumber}`
-    }),
-    getStockCommoditiesTradesVideo: builder.query({
-      query: (pageNumber) => `/crouses/stock/videos/?page=${pageNumber}`
-    }),
-    getGetMarketUpdatesVideo: builder.query({
-      query: (pageNumber) => `/crouses/market/videos/?page=${pageNumber}`
-    }),
-    getGetEducationVideo: builder.query({
-      query: (pageNumber) => `/crouses/education/videos/?page=${pageNumber}`
-    })
-  })
-});
-const {
-  useGetEcommerceCrousesQuery,
-  useGetCryptoTradesVideoQuery,
-  useGetStockCommoditiesTradesVideoQuery,
-  useGetGetMarketUpdatesVideoQuery,
-  useGetGetEducationVideoQuery
-} = crousesApi;
 const Pagination = ({ totalPage, currentPage, onPageChange }) => {
   return /* @__PURE__ */ jsx(
     ResponsivePagination,
@@ -2280,7 +2450,35 @@ const route14 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePrope
   default: Register,
   meta: meta$2
 }, Symbol.toStringTag, { value: "Module" }));
+const ticketApi = apiSlice.injectEndpoints({
+  endpoints: (builder) => ({
+    addTicket: builder.mutation({
+      query: (ticketData) => ({
+        url: "/configuration/create-ticker/",
+        method: "POST",
+        body: ticketData
+      })
+    }),
+    getTicket: builder.query({
+      query: () => "configuration/ticker/"
+    })
+  })
+});
+const { useAddTicketMutation, useGetTicketQuery } = ticketApi;
+dayjs.extend(utc);
+dayjs.extend(timezone);
 function Support() {
+  var _a;
+  const [page, setPage] = useState(1);
+  const { data, isLoading } = useGetTicketQuery(`?page=${page}`, {
+    refetchOnMountOrArgChange: true
+  });
+  const nextPage = () => {
+    if (data == null ? void 0 : data.next) setPage((prev) => prev + 1);
+  };
+  const prevPage = () => {
+    if ((data == null ? void 0 : data.previous) && page > 1) setPage((prev) => prev - 1);
+  };
   return /* @__PURE__ */ jsx("section", { className: "pt-6", children: /* @__PURE__ */ jsxs("div", { className: "container", children: [
     /* @__PURE__ */ jsx("h1", { className: "text-center text-[2rem] font-semibold leading-[1.4] text-title mb-[1.125rem] md:text-[2.625rem]", children: "Support" }),
     /* @__PURE__ */ jsxs("div", { className: "p-4", children: [
@@ -2297,34 +2495,42 @@ function Support() {
           /* @__PURE__ */ jsx("th", { className: "py-3 px-5 pl-10 text-lg leading-normal text-black font-normal text-left rounded-tl-2xl rounded-bl-2xl shadow-[inset_0_0_0_9999px_transparent] whitespace-nowrap", children: "Issue ID" }),
           /* @__PURE__ */ jsx("th", { className: "py-3 px-5 text-lg text-black font-normal text-left shadow-[inset_0_0_0_9999px_transparent] whitespace-nowrap", children: "Status" }),
           /* @__PURE__ */ jsx("th", { className: "py-3 px-5 text-lg text-black font-normal text-left shadow-[inset_0_0_0_9999px_transparent] whitespace-nowrap", children: "Issue Type" }),
-          /* @__PURE__ */ jsx("th", { className: "py-3 px-5 text-lg text-black font-normal text-left shadow-[inset_0_0_0_9999px_transparent] whitespace-nowrap", children: "Created At" }),
-          /* @__PURE__ */ jsx("th", { className: "py-3 px-5 text-lg text-black font-normal text-left rounded-tr-2xl rounded-br-2xl shadow-[inset_0_0_0_9999px_transparent] whitespace-nowrap", children: "View" })
+          /* @__PURE__ */ jsx("th", { className: "py-3 px-5 text-lg text-black font-normal text-left shadow-[inset_0_0_0_9999px_transparent] whitespace-nowrap", children: "Created At" })
         ] }) }),
-        /* @__PURE__ */ jsx("tbody", { className: "w-full" })
+        /* @__PURE__ */ jsx("tbody", { children: isLoading ? /* @__PURE__ */ jsx("tr", { children: /* @__PURE__ */ jsx("td", { colSpan: 4, className: "text-center py-4", children: "Loading..." }) }) : (_a = data == null ? void 0 : data.results) == null ? void 0 : _a.map((item) => /* @__PURE__ */ jsxs(
+          "tr",
+          {
+            className: "border-b border-[#0003] group",
+            children: [
+              /* @__PURE__ */ jsx("td", { className: "py-3 px-5 pl-10 text-sm md:text-lg text-left rounded-bl-2xl", children: item.id }),
+              /* @__PURE__ */ jsx("td", { className: "py-3 px-5 text-sm md:text-lg text-left", children: item.status }),
+              /* @__PURE__ */ jsx("td", { className: "py-3 px-5 text-sm md:text-lg text-left", children: item.issueType }),
+              /* @__PURE__ */ jsx("td", { className: "py-3 px-5 text-sm md:text-lg text-left rounded-br-2xl", children: item.created_at ? dayjs(item.created_at).tz("Asia/Dhaka").format("MMMM Do YYYY, h:mm:ss a") : "N/A" })
+            ]
+          },
+          item.id
+        )) })
       ] }) }),
-      /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-center pagination", children: [
-        /* @__PURE__ */ jsx("button", { className: "size-[2rem] rounded-full flex items-center justify-center opacity-[0.38] cursor-pointer", children: /* @__PURE__ */ jsx(
-          "svg",
+      /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-center gap-3 mt-4", children: [
+        /* @__PURE__ */ jsx(
+          "button",
           {
-            className: "size-5",
-            focusable: "false",
-            "aria-hidden": "true",
-            viewBox: "0 0 24 24",
-            "data-testid": "NavigateBeforeIcon",
-            children: /* @__PURE__ */ jsx("path", { d: "M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" })
+            onClick: prevPage,
+            disabled: !(data == null ? void 0 : data.previous),
+            className: "w-8 h-8 rounded-full flex items-center justify-center bg-gray-200 hover:bg-gray-300 disabled:opacity-40 cursor-pointer",
+            children: "‹"
           }
-        ) }),
-        /* @__PURE__ */ jsx("button", { className: "size-[2rem] rounded-full flex items-center justify-center opacity-[0.38] cursor-pointer", children: /* @__PURE__ */ jsx(
-          "svg",
+        ),
+        /* @__PURE__ */ jsx("span", { className: "text-base font-medium", children: page }),
+        /* @__PURE__ */ jsx(
+          "button",
           {
-            className: "size-5",
-            focusable: "false",
-            "aria-hidden": "true",
-            viewBox: "0 0 24 24",
-            "data-testid": "NavigateNextIcon",
-            children: /* @__PURE__ */ jsx("path", { d: "M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" })
+            onClick: nextPage,
+            disabled: !(data == null ? void 0 : data.next),
+            className: "w-8 h-8 rounded-full flex items-center justify-center bg-gray-200 hover:bg-gray-300 disabled:opacity-40 cursor-pointer",
+            children: "›"
           }
-        ) })
+        )
       ] })
     ] })
   ] }) });
@@ -2333,65 +2539,136 @@ const route15 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePrope
   __proto__: null,
   default: Support
 }, Symbol.toStringTag, { value: "Module" }));
+const Download = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABAEAQAAABQ8GUWAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAAmJLR0QAAKqNIzIAAAAJcEhZcwAAAGAAAABgAPBrQs8AAAAHdElNRQfmChsTBRZWosY9AAAHGklEQVR42u2bbUxTVxjHn9MWKoFSUFBK/WBmEZMlCjgBxdEWASnonLLiJBN1br5EVLJsEIKVCKJO3QzRRZkzYUgQUdQ5sdSWkorWlwQImmFQZBIRAeXFFnyBlrMPhEptSy+llwu636f23HPuef7/c8+9555zLsD/fNygsa5QxJs+Xf/JtGl6ibs7Ejk7AwBgaU8PPbOzU+fV0qLMe/r0gzFAxPP01M0QCOCyUAgugYGQ6esLSheX4cpgiVaLcurq4J/bt/EupRJfVKnK8trbJ4wBwU+cnFjrly7F6xMSUElUFDxnMEZzPvxzfz/aevMmYuXlvZUVFKhQd/e4NICPPTwcITER39++He1wd7dnkAbUGg38fuwYLeXAAVlTR8e4MEDEYzJ1kuRkOJmSAsyBPk02WKLVoqI9ezrUhw9XVvX1UWZAZJNQiL/LyQG9j89YCDchqbYWpBs3yo/euDGmBojFdHpXkUQCnjt3gj+dTon4Qar1eni+Z89CyMjYjfr7STcgfDGbjWrOnwf/sDBKhb/PudJSp3txcZcWabWkGcDHXl6OYVIpMPz8qNZrlvLKSqiMjpbPbWsjWoRGNOOSYg7H4U1FxbgVDwAgnDcPv7h2LaJm6lS7GiDiubr2t5WUoC94PKo1WgPt9/UFkMvDF7PZdjFALKbTdV0XLsB5f3+qxRHmxzlz4Mzp0+mYZlWf1Tu4d0hGBnJau5ZqTSMFFfv4PPmjt7ehsaJi2HzDHYxsEgr72xQKlGLdyXGJp04HkwWC4cYJFoWJeEwmvnL8OGniD2Vl0TZ7e+PTXC7evW8fKXU8ZzDw5pyceQEODpayWLwCIv6USCA/I4OMuPCVwkKFw+rVRvUVnzkDx+PiyKgPlScnX9UdPGjumNnW5WMPDziZkkJGMAAAKF4mM0kslErJqg+vSEvjYzc3wgY43k1KIvXFprOnh1Cavehis5kBiYmEDOBjFxeo2rqVtGAoAockJQU/cXKyagDTLTYWCsxfLhOauilTWB3Ll1s1AG9Ys4bqWEljp6k2IwNEPE9P/I1QSHWcpMGKjIyJMZ6tMjKgb6VQOGEHPUR4zmC8VYWGWjQAuXzArT9IlfE8hnFrZ8yfT3V8pPMiONiCAQhBpq8v1fGRDTpsrNFggIjH5VpbtPgg6GKz+djLa/CvYdGiN43DoRXYdk58pbAQxctkREdzjMc3b5pL080g+C7g7uyMP4+KQn+vWmVLvMwlXC5AS4uRAbQAFgtsMcBh716FQ1qabda9Q1rf1AT1Z88SLnA2Nzdc3dCA0lNTR1qXXsZiDb4GGroADmGxbAmctuHo0dGKtxX6syNHbCmH2l1dDfFTFbw96Ptr9GMWwwnQjZHNpw+i52zbRpUB9CW21U17806r4R7QX6XV2mInSk9NjSieORMKpdKR3ASl9U1NQ9NEvOnTdTMWLCBSHse7uKACkQhyxWKbnPtWozHEP/gjLIHLpT8zDoo0cFycXGF8w4sIF4sBFRWNRfW9VzkcFRp4ChgaXZnX3IwltnWDCYVaoxkUb2QAAMYo7MEDquMjncK6uqF/jbt99507VMdHNmjHrVuWDVhaXk51gGSDvzfWaLR/p1deXu7oqddTvuZPFtV6Pe2+SjU0yegKUKEXL6DsA74KHsnl7+8tMp0TDD91iuo4yQLHmmozMQApiotxdmcn1cHanfqOjkn7L160aoB8bk8PTKXuBYc0tNnZlz979cqqAQAA+IfsbAiz74ZEI9xNV51wPImTMWqNxjHI/JujWQPK8trbQUrSii0AwNcikUkaPzqatPrWZ2WVlJjv1hZXh8VfOTp2yWtqIHD2bDJiwrv37YNZA10NybZvh1ySFmOTams7JH5+ljZUDrtBIsKDzwcoK5uw44JqvR7PFQgUZdevW8oyrLCGV42NM3toNDglEFCtxRaQQ3q6XJ2fP1weq1MAbnGZmXBIoaBazIg5V1q6oGrvXmvZCG2UFPFcXfsOlJejYwEBVOsixKG7d3vn8Pkq1NVlLSuhSSBpvUbTtyImBl+qr6dam1XoDx/qX0dGEhFP2AAAABVqaemvWbQIVlZXU63RIkH37uF8gUAZ3NpKtMiIpgGVwa2tjF8EAnxQLqdaqwnnSkudokJCFB7NzSMpZuP3AgiF1yYno9CsLMofkWO9XX4okf6hobghJ4eswZJVkmpr8a+bNg33nLfGqFrvUUtj47xlJ068yXr9GgcFBqJrTOaYCFdrNBC+a1dH3rp1N9SPH4/mVHb7aErEc3Xtu7RlC4pJTgbe5MmkCR9vH029Dx9PmuQYsWzZR/fZnDkWJ0yZgr7k81FGWBh8GhQEF2fNgoXvFibNotZooLCuDnpu34Z/lUrabyqVvVp7zA0wx5JiDgfneHvjg2w25g7MAaCn3d3op5cv0abmZlnss2djHdP/fMz8ByXknDIuxn6CAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDIyLTEwLTI3VDE5OjA1OjIyKzAwOjAwR2fKCAAAACV0RVh0ZGF0ZTptb2RpZnkAMjAyMi0xMC0yN1QxOTowNToyMiswMDowMDY6crQAAAAodEVYdGRhdGU6dGltZXN0YW1wADIwMjItMTAtMjdUMTk6MDU6MjIrMDA6MDBhL1NrAAAAAElFTkSuQmCC";
 const TicketForm = () => {
-  return /* @__PURE__ */ jsxs("form", { children: [
+  const navigate = useNavigate();
+  const [addTicket] = useAddTicketMutation();
+  const {
+    handleSubmit,
+    register,
+    reset,
+    formState: { errors },
+    watch
+  } = useForm();
+  const [imagePreview, setImagePreview] = useState(null);
+  const watchedFile = watch("file");
+  useEffect(() => {
+    if (watchedFile == null ? void 0 : watchedFile[0]) {
+      const file = watchedFile[0];
+      const previewUrl = URL.createObjectURL(file);
+      setImagePreview(previewUrl);
+      return () => URL.revokeObjectURL(previewUrl);
+    }
+  }, [watchedFile]);
+  const onSubmitForm = async (formData) => {
+    var _a, _b;
+    try {
+      const file = (_a = formData.file) == null ? void 0 : _a[0];
+      const payload = new FormData();
+      payload.append("issueType", formData.issueType);
+      payload.append("description", formData.description);
+      if (file) payload.append("file", file);
+      await addTicket(payload).unwrap();
+      alert("Ticket submitted successfully!");
+      navigate("/support/");
+      reset();
+      setImagePreview(null);
+    } catch (error) {
+      console.error(error);
+      alert(
+        ((_b = error == null ? void 0 : error.data) == null ? void 0 : _b.message) || "Failed to submit the ticket. Please try again."
+      );
+    }
+  };
+  return /* @__PURE__ */ jsxs("form", { onSubmit: handleSubmit(onSubmitForm), className: "space-y-6", children: [
     /* @__PURE__ */ jsxs("div", { className: "flex flex-col gap-4 mb-4", children: [
-      /* @__PURE__ */ jsxs("select", { name: "issueType", children: [
-        /* @__PURE__ */ jsx("option", { value: "", children: "Select Issue Type*" }),
-        /* @__PURE__ */ jsx("option", { value: "Account Issue", children: "Account Issue" }),
-        /* @__PURE__ */ jsx("option", { value: "Payment Issue", children: "Payment Issue" }),
-        /* @__PURE__ */ jsx("option", { value: "Technical Issue", children: "Technical Issue" }),
-        /* @__PURE__ */ jsx("option", { value: "Mexc Telegram Group", children: "Mexc Telegram Group" }),
-        /* @__PURE__ */ jsx("option", { value: "Boflin Telegram Group", children: "Boflin Telegram Group" }),
-        /* @__PURE__ */ jsx("option", { value: "Welcome Paid Email Issue", children: "Welcome Paid Email Issue" }),
-        /* @__PURE__ */ jsx("option", { value: "OTP Issues", children: "OTP Issues" }),
-        /* @__PURE__ */ jsx("option", { value: "Forgot Password Issues", children: "Forgot Password Issues" }),
-        /* @__PURE__ */ jsx("option", { value: "Other", children: "Other" })
-      ] }),
-      /* @__PURE__ */ jsx(
+      /* @__PURE__ */ jsx(Field, { label: "Issue Type", error: errors.issueType, children: /* @__PURE__ */ jsxs(
+        "select",
+        {
+          ...register("issueType", {
+            required: "Issue type is required"
+          }),
+          id: "issueType",
+          className: "border px-3 py-2 rounded",
+          children: [
+            /* @__PURE__ */ jsx("option", { value: "", children: "Select Issue Type*" }),
+            /* @__PURE__ */ jsx("option", { value: "Account Issue", children: "Account Issue" }),
+            /* @__PURE__ */ jsx("option", { value: "Payment Issue", children: "Payment Issue" }),
+            /* @__PURE__ */ jsx("option", { value: "Technical Issue", children: "Technical Issue" }),
+            /* @__PURE__ */ jsx("option", { value: "Mexc Telegram Group", children: "Mexc Telegram Group" }),
+            /* @__PURE__ */ jsx("option", { value: "Boflin Telegram Group", children: "Boflin Telegram Group" }),
+            /* @__PURE__ */ jsx("option", { value: "Welcome Paid Email Issue", children: "Welcome Paid Email Issue" }),
+            /* @__PURE__ */ jsx("option", { value: "OTP Issues", children: "OTP Issues" }),
+            /* @__PURE__ */ jsx("option", { value: "Forgot Password Issues", children: "Forgot Password Issues" }),
+            /* @__PURE__ */ jsx("option", { value: "Other", children: "Other" })
+          ]
+        }
+      ) }),
+      /* @__PURE__ */ jsx(Field, { label: "Description", error: errors.description, children: /* @__PURE__ */ jsx(
         "textarea",
         {
-          name: "description",
-          id: "",
-          placeholder: "Add Description*"
+          ...register("description", {
+            required: "Description is required"
+          }),
+          id: "description",
+          placeholder: "Add Description*",
+          className: "border px-3 py-2 rounded"
         }
-      )
+      ) })
     ] }),
-    /* @__PURE__ */ jsxs("div", { className: "flex flex-col gap-1 mb-4", children: [
-      /* @__PURE__ */ jsx("label", { children: "Kindly upload a screenshot of the issue (Optional)" }),
+    /* @__PURE__ */ jsxs("div", { className: "flex flex-col gap-2 mb-4", children: [
+      /* @__PURE__ */ jsx("div", { children: "Kindly upload a screenshot of the issue (Optional)" }),
       /* @__PURE__ */ jsxs(
         "label",
         {
-          className: "h-[9.375rem] max-w-[15.625rem] border-2 border-dashed border-[#adadad] rounded-[0.313rem] flex items-center justify-center relative",
+          className: "h-[9.375rem] max-w-[15.625rem] border-2 border-dashed border-[#adadad] rounded-[0.313rem] flex items-center justify-center relative cursor-pointer",
           children: [
             /* @__PURE__ */ jsx(
               "input",
               {
-                className: "w-full",
+                ...register("file"),
                 type: "file",
-                name: "",
-                id: "file"
+                id: "file",
+                accept: "image/*",
+                className: "absolute inset-0 opacity-0 cursor-pointer",
+                onChange: (e) => {
+                  var _a;
+                  const file = (_a = e.target.files) == null ? void 0 : _a[0];
+                  if (file) {
+                    setImagePreview(URL.createObjectURL(file));
+                  } else {
+                    setImagePreview(null);
+                  }
+                }
               }
             ),
-            /* @__PURE__ */ jsx(
-              "div",
+            /* @__PURE__ */ jsx("div", { className: "size-[1.875rem] flex items-center justify-center absolute inset-0 bg-white w-full h-full", children: imagePreview ? /* @__PURE__ */ jsx(
+              "img",
               {
-                className: "size-[1.875rem] flex items-center justify-center absolute inset-0 w-full h-full bg-white",
-                children: /* @__PURE__ */ jsx(
-                  "img",
-                  {
-                    className: "size-[1.875rem]",
-                    src: "./src/img/download.png",
-                    alt: ""
-                  }
-                )
+                src: imagePreview,
+                alt: "Preview",
+                className: "object-contain max-h-full max-w-full"
               }
-            )
+            ) : /* @__PURE__ */ jsx(
+              "img",
+              {
+                className: "object-contain",
+                src: Download,
+                alt: "Upload Icon"
+              }
+            ) })
           ]
         }
       )
     ] }),
-    /* @__PURE__ */ jsx("div", { className: "flex", children: /* @__PURE__ */ jsx("button", { className: "w-auto", type: "submit", children: "Submit" }) })
+    /* @__PURE__ */ jsx("div", { className: "flex", children: /* @__PURE__ */ jsx(
+      "button",
+      {
+        className: "px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition",
+        type: "submit",
+        children: "Submit"
+      }
+    ) })
   ] });
 };
 function Ticket() {
@@ -2565,6 +2842,38 @@ const route17 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.definePrope
   default: Index,
   meta: meta$1
 }, Symbol.toStringTag, { value: "Module" }));
+const loader = async ({ params }) => {
+  const slug = params.slug;
+  const res = await fetch(`${SERVER_URL}/pages/all/`);
+  const data = await res.json();
+  const matched = data.results.find(
+    (item) => item.menu.slug === slug
+  );
+  if (!matched) {
+    throw new Response("Not Found", { status: 404 });
+  }
+  return json(matched);
+};
+function PageSlug() {
+  const page = useLoaderData();
+  return /* @__PURE__ */ jsx("main", { className: "relative top-0 left-0 right-0 w-full py-5", children: /* @__PURE__ */ jsx("div", { className: "max-w-screen-2xl container mx-auto px-2.5 lg:px-5", children: /* @__PURE__ */ jsxs("div", { className: "flex flex-col flex-wrap gap-y-5", children: [
+    page.title && /* @__PURE__ */ jsx("h1", { className: "text-3xl font-bold mb-4 text-center", children: page.title }),
+    page.image && /* @__PURE__ */ jsx("img", { src: page.image, alt: page.title, className: "mb-4 rounded" }),
+    page.video && /* @__PURE__ */ jsx("video", { controls: true, className: "mt-4 w-full rounded", children: /* @__PURE__ */ jsx("source", { src: page.video, type: "video/mp4" }) }),
+    page.body && /* @__PURE__ */ jsx(
+      "div",
+      {
+        className: "prose",
+        dangerouslySetInnerHTML: { __html: page.body }
+      }
+    )
+  ] }) }) });
+}
+const route18 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  __proto__: null,
+  default: PageSlug,
+  loader
+}, Symbol.toStringTag, { value: "Module" }));
 const LoginForm = () => {
   const [addLogin, { isLoading }] = useAddLoginMutation();
   const navigate = useNavigate();
@@ -2647,12 +2956,12 @@ function Login() {
     /* @__PURE__ */ jsx(LoginForm, {})
   ] }) }) }) }) }) });
 }
-const route18 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+const route19 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
   __proto__: null,
   default: Login,
   meta
 }, Symbol.toStringTag, { value: "Module" }));
-const serverManifest = { "entry": { "module": "/assets/entry.client-CLhmT_5m.js", "imports": ["/assets/jsx-runtime-0DLF9kdB.js", "/assets/index-BJYSoprK.js", "/assets/index-D0P1Q6sc.js", "/assets/index-CGueamPp.js", "/assets/components-DiV7fZhU.js"], "css": [] }, "routes": { "root": { "id": "root", "parentId": void 0, "path": "", "index": void 0, "caseSensitive": void 0, "hasAction": false, "hasLoader": false, "hasClientAction": false, "hasClientLoader": false, "hasErrorBoundary": false, "module": "/assets/root-CXQiSIKv.js", "imports": ["/assets/jsx-runtime-0DLF9kdB.js", "/assets/index-BJYSoprK.js", "/assets/index-D0P1Q6sc.js", "/assets/index-CGueamPp.js", "/assets/components-DiV7fZhU.js", "/assets/apiSlice-DZ1uaOkK.js", "/assets/homepageApi-DKl40jvI.js", "/assets/reactIcons-B3rw_2Oy.js"], "css": ["/assets/root-CbEUhZ3V.css"] }, "routes/confirm-password.$uidb64.$token": { "id": "routes/confirm-password.$uidb64.$token", "parentId": "root", "path": "confirm-password/:uidb64/:token", "index": void 0, "caseSensitive": void 0, "hasAction": false, "hasLoader": false, "hasClientAction": false, "hasClientLoader": false, "hasErrorBoundary": false, "module": "/assets/confirm-password._uidb64._token-De0wxUfl.js", "imports": ["/assets/jsx-runtime-0DLF9kdB.js", "/assets/field-hPfyZmlp.js", "/assets/authApi-yDu2T9hS.js", "/assets/index-CGueamPp.js", "/assets/index-BJYSoprK.js", "/assets/apiSlice-DZ1uaOkK.js"], "css": [] }, "routes/success-change-password": { "id": "routes/success-change-password", "parentId": "root", "path": "success-change-password", "index": void 0, "caseSensitive": void 0, "hasAction": false, "hasLoader": false, "hasClientAction": false, "hasClientLoader": false, "hasErrorBoundary": false, "module": "/assets/success-change-password-BDu0A7JP.js", "imports": ["/assets/jsx-runtime-0DLF9kdB.js", "/assets/components-DiV7fZhU.js", "/assets/index-BJYSoprK.js", "/assets/index-D0P1Q6sc.js", "/assets/index-CGueamPp.js"], "css": [] }, "routes/terms-and-conditions": { "id": "routes/terms-and-conditions", "parentId": "root", "path": "terms-and-conditions", "index": void 0, "caseSensitive": void 0, "hasAction": false, "hasLoader": false, "hasClientAction": false, "hasClientLoader": false, "hasErrorBoundary": false, "module": "/assets/terms-and-conditions-bJ6efKL7.js", "imports": ["/assets/jsx-runtime-0DLF9kdB.js", "/assets/apiSlice-DZ1uaOkK.js", "/assets/index-BJYSoprK.js"], "css": [] }, "routes/crypto.subscription": { "id": "routes/crypto.subscription", "parentId": "root", "path": "crypto/subscription", "index": void 0, "caseSensitive": void 0, "hasAction": false, "hasLoader": false, "hasClientAction": false, "hasClientLoader": false, "hasErrorBoundary": false, "module": "/assets/crypto.subscription-Kw4nW_HS.js", "imports": ["/assets/jsx-runtime-0DLF9kdB.js", "/assets/apiSlice-DZ1uaOkK.js", "/assets/cryptoApi-DBEn9sDh.js", "/assets/paymentsApi-zg7RwV-I.js", "/assets/index-CGueamPp.js", "/assets/index-BJYSoprK.js"], "css": [] }, "routes/e-commerce.single": { "id": "routes/e-commerce.single", "parentId": "routes/e-commerce", "path": "single", "index": void 0, "caseSensitive": void 0, "hasAction": false, "hasLoader": false, "hasClientAction": false, "hasClientLoader": false, "hasErrorBoundary": false, "module": "/assets/e-commerce.single-DNvR8Dwj.js", "imports": ["/assets/jsx-runtime-0DLF9kdB.js"], "css": [] }, "routes/forgot-password": { "id": "routes/forgot-password", "parentId": "root", "path": "forgot-password", "index": void 0, "caseSensitive": void 0, "hasAction": false, "hasLoader": false, "hasClientAction": false, "hasClientLoader": false, "hasErrorBoundary": false, "module": "/assets/forgot-password-Cwtg2L6r.js", "imports": ["/assets/jsx-runtime-0DLF9kdB.js", "/assets/field-hPfyZmlp.js", "/assets/authApi-yDu2T9hS.js", "/assets/index-BJYSoprK.js", "/assets/apiSlice-DZ1uaOkK.js"], "css": [] }, "routes/payment.success": { "id": "routes/payment.success", "parentId": "root", "path": "payment/success", "index": void 0, "caseSensitive": void 0, "hasAction": false, "hasLoader": false, "hasClientAction": false, "hasClientLoader": false, "hasErrorBoundary": false, "module": "/assets/payment.success-Diw1tuhU.js", "imports": ["/assets/jsx-runtime-0DLF9kdB.js", "/assets/components-DiV7fZhU.js", "/assets/index-BJYSoprK.js", "/assets/index-D0P1Q6sc.js", "/assets/index-CGueamPp.js"], "css": [] }, "routes/payment.cancel": { "id": "routes/payment.cancel", "parentId": "root", "path": "payment/cancel", "index": void 0, "caseSensitive": void 0, "hasAction": false, "hasLoader": false, "hasClientAction": false, "hasClientLoader": false, "hasErrorBoundary": false, "module": "/assets/payment.cancel-DRXfy3iX.js", "imports": ["/assets/jsx-runtime-0DLF9kdB.js", "/assets/components-DiV7fZhU.js", "/assets/index-BJYSoprK.js", "/assets/index-D0P1Q6sc.js", "/assets/index-CGueamPp.js"], "css": [] }, "routes/privacy-policy": { "id": "routes/privacy-policy", "parentId": "root", "path": "privacy-policy", "index": void 0, "caseSensitive": void 0, "hasAction": false, "hasLoader": false, "hasClientAction": false, "hasClientLoader": false, "hasErrorBoundary": false, "module": "/assets/privacy-policy-BrD0UyjG.js", "imports": ["/assets/jsx-runtime-0DLF9kdB.js", "/assets/apiSlice-DZ1uaOkK.js", "/assets/index-BJYSoprK.js"], "css": [] }, "routes/subscription": { "id": "routes/subscription", "parentId": "root", "path": "subscription", "index": void 0, "caseSensitive": void 0, "hasAction": false, "hasLoader": false, "hasClientAction": false, "hasClientLoader": false, "hasErrorBoundary": false, "module": "/assets/subscription-Kw4nW_HS.js", "imports": ["/assets/jsx-runtime-0DLF9kdB.js", "/assets/apiSlice-DZ1uaOkK.js", "/assets/cryptoApi-DBEn9sDh.js", "/assets/paymentsApi-zg7RwV-I.js", "/assets/index-CGueamPp.js", "/assets/index-BJYSoprK.js"], "css": [] }, "routes/pay-history": { "id": "routes/pay-history", "parentId": "root", "path": "pay-history", "index": void 0, "caseSensitive": void 0, "hasAction": false, "hasLoader": false, "hasClientAction": false, "hasClientLoader": false, "hasErrorBoundary": false, "module": "/assets/pay-history-BkLPaGaL.js", "imports": ["/assets/jsx-runtime-0DLF9kdB.js", "/assets/dayjs.min-_dhynq4M.js", "/assets/index-BJYSoprK.js", "/assets/paymentsApi-zg7RwV-I.js", "/assets/apiSlice-DZ1uaOkK.js"], "css": [] }, "routes/e-commerce": { "id": "routes/e-commerce", "parentId": "root", "path": "e-commerce", "index": void 0, "caseSensitive": void 0, "hasAction": false, "hasLoader": false, "hasClientAction": false, "hasClientLoader": false, "hasErrorBoundary": false, "module": "/assets/e-commerce-xTNFFCwj.js", "imports": ["/assets/jsx-runtime-0DLF9kdB.js", "/assets/field-hPfyZmlp.js", "/assets/index-BJYSoprK.js", "/assets/apiSlice-DZ1uaOkK.js", "/assets/paymentsApi-zg7RwV-I.js", "/assets/components-DiV7fZhU.js", "/assets/index-D0P1Q6sc.js", "/assets/index-CGueamPp.js"], "css": [] }, "routes/dashboard": { "id": "routes/dashboard", "parentId": "root", "path": "dashboard", "index": void 0, "caseSensitive": void 0, "hasAction": false, "hasLoader": false, "hasClientAction": false, "hasClientLoader": false, "hasErrorBoundary": false, "module": "/assets/dashboard-DFbF1JAi.js", "imports": ["/assets/jsx-runtime-0DLF9kdB.js", "/assets/dayjs.min-_dhynq4M.js", "/assets/index-BJYSoprK.js", "/assets/apiSlice-DZ1uaOkK.js", "/assets/paymentsApi-zg7RwV-I.js", "/assets/index-50NtfWQ1.js", "/assets/index-D0P1Q6sc.js"], "css": ["/assets/dashboard-DncTmDE-.css"] }, "routes/register": { "id": "routes/register", "parentId": "root", "path": "register", "index": void 0, "caseSensitive": void 0, "hasAction": false, "hasLoader": false, "hasClientAction": false, "hasClientLoader": false, "hasErrorBoundary": false, "module": "/assets/register-29Lri_f6.js", "imports": ["/assets/jsx-runtime-0DLF9kdB.js", "/assets/index-BJYSoprK.js", "/assets/field-hPfyZmlp.js", "/assets/authApi-yDu2T9hS.js", "/assets/reactIcons-B3rw_2Oy.js", "/assets/index-50NtfWQ1.js", "/assets/index-CGueamPp.js", "/assets/components-DiV7fZhU.js", "/assets/apiSlice-DZ1uaOkK.js", "/assets/index-D0P1Q6sc.js"], "css": ["/assets/register-DpsRipQV.css"] }, "routes/support": { "id": "routes/support", "parentId": "root", "path": "support", "index": void 0, "caseSensitive": void 0, "hasAction": false, "hasLoader": false, "hasClientAction": false, "hasClientLoader": false, "hasErrorBoundary": false, "module": "/assets/support-BWjLjraT.js", "imports": ["/assets/jsx-runtime-0DLF9kdB.js", "/assets/components-DiV7fZhU.js", "/assets/index-BJYSoprK.js", "/assets/index-D0P1Q6sc.js", "/assets/index-CGueamPp.js"], "css": [] }, "routes/ticket": { "id": "routes/ticket", "parentId": "root", "path": "ticket", "index": void 0, "caseSensitive": void 0, "hasAction": false, "hasLoader": false, "hasClientAction": false, "hasClientLoader": false, "hasErrorBoundary": false, "module": "/assets/ticket-QUD4YItf.js", "imports": ["/assets/jsx-runtime-0DLF9kdB.js"], "css": [] }, "routes/_index": { "id": "routes/_index", "parentId": "root", "path": void 0, "index": true, "caseSensitive": void 0, "hasAction": false, "hasLoader": false, "hasClientAction": false, "hasClientLoader": false, "hasErrorBoundary": false, "module": "/assets/_index-lnRRVF2U.js", "imports": ["/assets/jsx-runtime-0DLF9kdB.js", "/assets/apiSlice-DZ1uaOkK.js", "/assets/components-DiV7fZhU.js", "/assets/homepageApi-DKl40jvI.js", "/assets/reactIcons-B3rw_2Oy.js", "/assets/index-BJYSoprK.js", "/assets/index-D0P1Q6sc.js", "/assets/index-CGueamPp.js"], "css": [] }, "routes/login": { "id": "routes/login", "parentId": "root", "path": "login", "index": void 0, "caseSensitive": void 0, "hasAction": false, "hasLoader": false, "hasClientAction": false, "hasClientLoader": false, "hasErrorBoundary": false, "module": "/assets/login-DtcAdmaU.js", "imports": ["/assets/jsx-runtime-0DLF9kdB.js", "/assets/index-BJYSoprK.js", "/assets/field-hPfyZmlp.js", "/assets/authApi-yDu2T9hS.js", "/assets/reactIcons-B3rw_2Oy.js", "/assets/index-CGueamPp.js", "/assets/components-DiV7fZhU.js", "/assets/apiSlice-DZ1uaOkK.js", "/assets/index-D0P1Q6sc.js"], "css": [] } }, "url": "/assets/manifest-65c6b6a8.js", "version": "65c6b6a8" };
+const serverManifest = { "entry": { "module": "/assets/entry.client-DZNyI-M6.js", "imports": ["/assets/index-7zqVQZSl.js", "/assets/index-BGq1ChQV.js", "/assets/index-BKM5EYG8.js", "/assets/components-D5DyCDxT.js"], "css": [] }, "routes": { "root": { "id": "root", "parentId": void 0, "path": "", "index": void 0, "caseSensitive": void 0, "hasAction": false, "hasLoader": false, "hasClientAction": false, "hasClientLoader": false, "hasErrorBoundary": false, "module": "/assets/root-VDLEtcHh.js", "imports": ["/assets/index-7zqVQZSl.js", "/assets/index-BGq1ChQV.js", "/assets/index-BKM5EYG8.js", "/assets/components-D5DyCDxT.js", "/assets/apiSlice-B07QsG9S.js", "/assets/homepageApi-DE_enf_u.js", "/assets/reactIcons-CaAhgrcf.js"], "css": ["/assets/root-CfbQUbwk.css"] }, "routes/confirm-password.$uidb64.$token": { "id": "routes/confirm-password.$uidb64.$token", "parentId": "root", "path": "confirm-password/:uidb64/:token", "index": void 0, "caseSensitive": void 0, "hasAction": false, "hasLoader": false, "hasClientAction": false, "hasClientLoader": false, "hasErrorBoundary": false, "module": "/assets/confirm-password._uidb64._token-076ls9dY.js", "imports": ["/assets/index-7zqVQZSl.js", "/assets/field-ShKTF1df.js", "/assets/authApi-DmKKkXNm.js", "/assets/index-BKM5EYG8.js", "/assets/apiSlice-B07QsG9S.js"], "css": [] }, "routes/success-change-password": { "id": "routes/success-change-password", "parentId": "root", "path": "success-change-password", "index": void 0, "caseSensitive": void 0, "hasAction": false, "hasLoader": false, "hasClientAction": false, "hasClientLoader": false, "hasErrorBoundary": false, "module": "/assets/success-change-password-DKe9irNB.js", "imports": ["/assets/index-7zqVQZSl.js", "/assets/components-D5DyCDxT.js", "/assets/index-BGq1ChQV.js", "/assets/index-BKM5EYG8.js"], "css": [] }, "routes/terms-and-conditions": { "id": "routes/terms-and-conditions", "parentId": "root", "path": "terms-and-conditions", "index": void 0, "caseSensitive": void 0, "hasAction": false, "hasLoader": false, "hasClientAction": false, "hasClientLoader": false, "hasErrorBoundary": false, "module": "/assets/terms-and-conditions-DmTAAIGv.js", "imports": ["/assets/index-7zqVQZSl.js", "/assets/apiSlice-B07QsG9S.js"], "css": [] }, "routes/crypto.subscription": { "id": "routes/crypto.subscription", "parentId": "root", "path": "crypto/subscription", "index": void 0, "caseSensitive": void 0, "hasAction": false, "hasLoader": false, "hasClientAction": false, "hasClientLoader": false, "hasErrorBoundary": false, "module": "/assets/crypto.subscription-BIsH1-__.js", "imports": ["/assets/index-7zqVQZSl.js", "/assets/apiSlice-B07QsG9S.js", "/assets/cryptoApi-BQVtWaVM.js", "/assets/paymentsApi-DkGlB8Q9.js", "/assets/index-BKM5EYG8.js"], "css": [] }, "routes/forgot-password": { "id": "routes/forgot-password", "parentId": "root", "path": "forgot-password", "index": void 0, "caseSensitive": void 0, "hasAction": false, "hasLoader": false, "hasClientAction": false, "hasClientLoader": false, "hasErrorBoundary": false, "module": "/assets/forgot-password-C2WEv8TC.js", "imports": ["/assets/index-7zqVQZSl.js", "/assets/field-ShKTF1df.js", "/assets/authApi-DmKKkXNm.js", "/assets/apiSlice-B07QsG9S.js"], "css": [] }, "routes/payment.success": { "id": "routes/payment.success", "parentId": "root", "path": "payment/success", "index": void 0, "caseSensitive": void 0, "hasAction": false, "hasLoader": false, "hasClientAction": false, "hasClientLoader": false, "hasErrorBoundary": false, "module": "/assets/payment.success-CnSLxTrD.js", "imports": ["/assets/index-7zqVQZSl.js", "/assets/components-D5DyCDxT.js", "/assets/index-BGq1ChQV.js", "/assets/index-BKM5EYG8.js"], "css": [] }, "routes/payment.cancel": { "id": "routes/payment.cancel", "parentId": "root", "path": "payment/cancel", "index": void 0, "caseSensitive": void 0, "hasAction": false, "hasLoader": false, "hasClientAction": false, "hasClientLoader": false, "hasErrorBoundary": false, "module": "/assets/payment.cancel-CsjzvwBc.js", "imports": ["/assets/index-7zqVQZSl.js", "/assets/components-D5DyCDxT.js", "/assets/index-BGq1ChQV.js", "/assets/index-BKM5EYG8.js"], "css": [] }, "routes/privacy-policy": { "id": "routes/privacy-policy", "parentId": "root", "path": "privacy-policy", "index": void 0, "caseSensitive": void 0, "hasAction": false, "hasLoader": false, "hasClientAction": false, "hasClientLoader": false, "hasErrorBoundary": false, "module": "/assets/privacy-policy-0EjZ6IaC.js", "imports": ["/assets/index-7zqVQZSl.js", "/assets/apiSlice-B07QsG9S.js"], "css": [] }, "routes/single.course": { "id": "routes/single.course", "parentId": "root", "path": "single/course", "index": void 0, "caseSensitive": void 0, "hasAction": false, "hasLoader": false, "hasClientAction": false, "hasClientLoader": false, "hasErrorBoundary": false, "module": "/assets/single.course-BVrwfhxD.js", "imports": ["/assets/index-7zqVQZSl.js", "/assets/apiSlice-B07QsG9S.js", "/assets/crousesApi-BOkHAWIT.js", "/assets/paymentsApi-DkGlB8Q9.js", "/assets/index-BKM5EYG8.js"], "css": [] }, "routes/subscription": { "id": "routes/subscription", "parentId": "root", "path": "subscription", "index": void 0, "caseSensitive": void 0, "hasAction": false, "hasLoader": false, "hasClientAction": false, "hasClientLoader": false, "hasErrorBoundary": false, "module": "/assets/subscription-DX3dMznJ.js", "imports": ["/assets/index-7zqVQZSl.js", "/assets/apiSlice-B07QsG9S.js", "/assets/cryptoApi-BQVtWaVM.js", "/assets/paymentsApi-DkGlB8Q9.js", "/assets/index-BKM5EYG8.js"], "css": [] }, "routes/pay-history": { "id": "routes/pay-history", "parentId": "root", "path": "pay-history", "index": void 0, "caseSensitive": void 0, "hasAction": false, "hasLoader": false, "hasClientAction": false, "hasClientLoader": false, "hasErrorBoundary": false, "module": "/assets/pay-history-BVUp9klf.js", "imports": ["/assets/index-7zqVQZSl.js", "/assets/dayjs.min-BRK4WLUO.js", "/assets/utc-BIQzp-gY.js", "/assets/paymentsApi-DkGlB8Q9.js", "/assets/apiSlice-B07QsG9S.js"], "css": [] }, "routes/e-commerce": { "id": "routes/e-commerce", "parentId": "root", "path": "e-commerce", "index": void 0, "caseSensitive": void 0, "hasAction": false, "hasLoader": false, "hasClientAction": false, "hasClientLoader": false, "hasErrorBoundary": false, "module": "/assets/e-commerce-Cq1vDtWf.js", "imports": ["/assets/index-7zqVQZSl.js", "/assets/field-ShKTF1df.js", "/assets/apiSlice-B07QsG9S.js", "/assets/paymentsApi-DkGlB8Q9.js", "/assets/components-D5DyCDxT.js", "/assets/index-BGq1ChQV.js", "/assets/index-BKM5EYG8.js"], "css": [] }, "routes/dashboard": { "id": "routes/dashboard", "parentId": "root", "path": "dashboard", "index": void 0, "caseSensitive": void 0, "hasAction": false, "hasLoader": false, "hasClientAction": false, "hasClientLoader": false, "hasErrorBoundary": false, "module": "/assets/dashboard-B7Tk-ayM.js", "imports": ["/assets/index-7zqVQZSl.js", "/assets/dayjs.min-BRK4WLUO.js", "/assets/crousesApi-BOkHAWIT.js", "/assets/paymentsApi-DkGlB8Q9.js", "/assets/apiSlice-B07QsG9S.js", "/assets/index-U7tiAVa-.js", "/assets/index-BGq1ChQV.js"], "css": ["/assets/dashboard-DncTmDE-.css"] }, "routes/register": { "id": "routes/register", "parentId": "root", "path": "register", "index": void 0, "caseSensitive": void 0, "hasAction": false, "hasLoader": false, "hasClientAction": false, "hasClientLoader": false, "hasErrorBoundary": false, "module": "/assets/register-BctA2ASy.js", "imports": ["/assets/index-7zqVQZSl.js", "/assets/field-ShKTF1df.js", "/assets/authApi-DmKKkXNm.js", "/assets/reactIcons-CaAhgrcf.js", "/assets/index-U7tiAVa-.js", "/assets/index-BKM5EYG8.js", "/assets/components-D5DyCDxT.js", "/assets/apiSlice-B07QsG9S.js", "/assets/index-BGq1ChQV.js"], "css": ["/assets/register-DpsRipQV.css"] }, "routes/support": { "id": "routes/support", "parentId": "root", "path": "support", "index": void 0, "caseSensitive": void 0, "hasAction": false, "hasLoader": false, "hasClientAction": false, "hasClientLoader": false, "hasErrorBoundary": false, "module": "/assets/support-uScztm63.js", "imports": ["/assets/index-7zqVQZSl.js", "/assets/ticketApi-BNFKSctp.js", "/assets/dayjs.min-BRK4WLUO.js", "/assets/utc-BIQzp-gY.js", "/assets/components-D5DyCDxT.js", "/assets/apiSlice-B07QsG9S.js", "/assets/index-BGq1ChQV.js", "/assets/index-BKM5EYG8.js"], "css": [] }, "routes/ticket": { "id": "routes/ticket", "parentId": "root", "path": "ticket", "index": void 0, "caseSensitive": void 0, "hasAction": false, "hasLoader": false, "hasClientAction": false, "hasClientLoader": false, "hasErrorBoundary": false, "module": "/assets/ticket-NIuvFQhA.js", "imports": ["/assets/index-7zqVQZSl.js", "/assets/field-ShKTF1df.js", "/assets/ticketApi-BNFKSctp.js", "/assets/index-BKM5EYG8.js", "/assets/apiSlice-B07QsG9S.js"], "css": [] }, "routes/_index": { "id": "routes/_index", "parentId": "root", "path": void 0, "index": true, "caseSensitive": void 0, "hasAction": false, "hasLoader": false, "hasClientAction": false, "hasClientLoader": false, "hasErrorBoundary": false, "module": "/assets/_index-BSpogyyY.js", "imports": ["/assets/index-7zqVQZSl.js", "/assets/apiSlice-B07QsG9S.js", "/assets/components-D5DyCDxT.js", "/assets/homepageApi-DE_enf_u.js", "/assets/reactIcons-CaAhgrcf.js", "/assets/index-BGq1ChQV.js", "/assets/index-BKM5EYG8.js"], "css": [] }, "routes/$slug": { "id": "routes/$slug", "parentId": "root", "path": ":slug", "index": void 0, "caseSensitive": void 0, "hasAction": false, "hasLoader": true, "hasClientAction": false, "hasClientLoader": false, "hasErrorBoundary": false, "module": "/assets/_slug-wVM7ripd.js", "imports": ["/assets/index-7zqVQZSl.js", "/assets/components-D5DyCDxT.js", "/assets/index-BGq1ChQV.js", "/assets/index-BKM5EYG8.js"], "css": [] }, "routes/login": { "id": "routes/login", "parentId": "root", "path": "login", "index": void 0, "caseSensitive": void 0, "hasAction": false, "hasLoader": false, "hasClientAction": false, "hasClientLoader": false, "hasErrorBoundary": false, "module": "/assets/login-_D_iwePB.js", "imports": ["/assets/index-7zqVQZSl.js", "/assets/field-ShKTF1df.js", "/assets/authApi-DmKKkXNm.js", "/assets/reactIcons-CaAhgrcf.js", "/assets/index-BKM5EYG8.js", "/assets/components-D5DyCDxT.js", "/assets/apiSlice-B07QsG9S.js", "/assets/index-BGq1ChQV.js"], "css": [] } }, "url": "/assets/manifest-b9fe8daa.js", "version": "b9fe8daa" };
 const mode = "production";
 const assetsBuildDirectory = "build\\client";
 const basename = "/";
@@ -2701,21 +3010,13 @@ const routes = {
     caseSensitive: void 0,
     module: route4
   },
-  "routes/e-commerce.single": {
-    id: "routes/e-commerce.single",
-    parentId: "routes/e-commerce",
-    path: "single",
-    index: void 0,
-    caseSensitive: void 0,
-    module: route5
-  },
   "routes/forgot-password": {
     id: "routes/forgot-password",
     parentId: "root",
     path: "forgot-password",
     index: void 0,
     caseSensitive: void 0,
-    module: route6
+    module: route5
   },
   "routes/payment.success": {
     id: "routes/payment.success",
@@ -2723,7 +3024,7 @@ const routes = {
     path: "payment/success",
     index: void 0,
     caseSensitive: void 0,
-    module: route7
+    module: route6
   },
   "routes/payment.cancel": {
     id: "routes/payment.cancel",
@@ -2731,12 +3032,20 @@ const routes = {
     path: "payment/cancel",
     index: void 0,
     caseSensitive: void 0,
-    module: route8
+    module: route7
   },
   "routes/privacy-policy": {
     id: "routes/privacy-policy",
     parentId: "root",
     path: "privacy-policy",
+    index: void 0,
+    caseSensitive: void 0,
+    module: route8
+  },
+  "routes/single.course": {
+    id: "routes/single.course",
+    parentId: "root",
+    path: "single/course",
     index: void 0,
     caseSensitive: void 0,
     module: route9
@@ -2805,13 +3114,21 @@ const routes = {
     caseSensitive: void 0,
     module: route17
   },
+  "routes/$slug": {
+    id: "routes/$slug",
+    parentId: "root",
+    path: ":slug",
+    index: void 0,
+    caseSensitive: void 0,
+    module: route18
+  },
   "routes/login": {
     id: "routes/login",
     parentId: "root",
     path: "login",
     index: void 0,
     caseSensitive: void 0,
-    module: route18
+    module: route19
   }
 };
 export {

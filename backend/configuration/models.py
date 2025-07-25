@@ -1,16 +1,58 @@
 from django.db import models
 from django.utils.text import slugify
 from django.utils.html import strip_tags
+from django.contrib.auth import get_user_model
 from ckeditor_uploader.fields import RichTextUploadingField
 from configuration.utils.logo_upload import LOGO_DIRECTORY_PATH
 from core.utils import VALIDATE_IMAGE_EXTENSION, VALIDATE_IMAGE_SIZE, VALIDATE_EMAIL, VALIDATE_PHONE_NUMBER
 from django.utils.translation import gettext_lazy as _
 
+User = get_user_model()
+
 def GENERATE_SLUG(value):
     return slugify(strip_tags(value))
 
+class Ticket(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('cancelled', 'Cancelled'),
+        ('completed', 'Completed'),
+    ]
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="tickets",
+        null=True,
+        blank=True,
+    )
+    issueType = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True,
+    )
+    description = models.TextField(
+        max_length=1000,
+        null=True,
+        blank=True,
+    )
+    file = models.ImageField(
+        null=True,
+        blank=True,
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending',
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    def __str__(self):
+        return self.issueType
+
 class HeaderMenu(models.Model):
-    name = RichTextUploadingField(
+    name = models.CharField(
         max_length=255,
         null=True,
         blank=True,
@@ -280,3 +322,69 @@ class LegalDisclaimer(models.Model):
 
     def __str__(self):
         return self.title or "Legal Disclaimer"
+
+class WelcomeEmailTemplate(models.Model):
+    subject = models.CharField(
+        max_length=255, 
+        default="Welcome to Team Bjollys"
+    )
+    header_title = models.CharField(
+        max_length=100, 
+        default="🎉 Welcome to Team Bjollys!"
+    )
+    description = RichTextUploadingField()
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            WelcomeEmailTemplate.objects.all().delete()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Welcome Email Template (#{self.id})"
+
+class CryptoEmailTemplate(models.Model):
+    subject = models.CharField(
+        max_length=255,
+        default="Crypto Account Activated",
+        help_text="Email subject line for crypto course welcome email."
+    )
+    header_title = models.CharField(
+        max_length=100,
+        default="🎉 Welcome to Crypto Course!",
+        help_text="Header title displayed at the top of the email."
+    )
+    description = RichTextUploadingField(
+        help_text="HTML content of the email body (supports rich formatting)."
+    )
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            CryptoEmailTemplate.objects.all().delete()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Crypto Email Template #{self.id}"
+    
+class EcommerceEmailTemplate(models.Model):
+    subject = models.CharField(
+        max_length=255,
+        default="E-commerce Account Activated",
+        help_text="Email subject line for e-commerce course welcome email."
+    )
+    header_title = models.CharField(
+        max_length=100,
+        default="🎉 Welcome to E-commerce Course!",
+        help_text="Header title displayed at the top of the email."
+    )
+    description = RichTextUploadingField(
+        help_text="HTML content of the email body (rich text supported)."
+    )
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            EcommerceEmailTemplate.objects.all().delete()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"E-commerce Email Template #{self.id}"
+    

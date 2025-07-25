@@ -27,7 +27,7 @@ export default function PayHistory() {
     <section className="py-6">
       <div className="container">
         <h1 className="text-center text-[2rem] font-semibold leading-[1.4] text-title mb-[1.125rem] md:text-[2.625rem]">
-          Subscription History
+          Payment History
         </h1>
 
         <div className="p-4 mb-2">
@@ -102,6 +102,7 @@ export default function PayHistory() {
               ›
             </button>
           </div>
+          
         </div>
       </div>
     </section>

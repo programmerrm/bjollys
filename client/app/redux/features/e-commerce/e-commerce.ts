@@ -28,10 +28,10 @@ export const ecommerceApi = apiSlice.injectEndpoints({
             query: () => '/e-commerce/whatsapp-number/',
         }),
         addBooking: builder.mutation<void, BookingPropsType>({
-            query: (newBookingData) => ({
+            query: (bookingData) => ({
                 url: '/e-commerce/booking/',
                 method: 'POST',
-                body: newBookingData,
+                body: bookingData,
             }),
         }),
     }),

@@ -12,12 +12,19 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', None)
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'bjollys_database',
+        'USER': 'bjollys',
+        'PASSWORD': 'bjollyRasel77@',
+        'HOST': 'localhost',
+        'PORT': '3306',
     }
 }
 
-CSRF_TRUSTED_ORIGINS = ['https://bjollys.net', 'https://api.bjollys.net']
+CSRF_TRUSTED_ORIGINS = [
+    'https://bjollys.net', 
+    'https://api.bjollys.net',
+]
 
 SIMPLE_JWT.update({
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),

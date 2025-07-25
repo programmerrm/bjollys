@@ -13,8 +13,6 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost:3000', 
     '127.0.0.1:8000',
-    'api.bjollys.net',
-    'bjollys.net',
 ]
 
 SECRET_KEY = 'django-insecure-4%gu)qu8u+wms*+#psj)c$pc^l!u3ntj@osqpb!2l!t+qo+x55'
@@ -25,21 +23,10 @@ INSTALLED_APPS += [
     'drf_spectacular_sidecar',
 ]
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'bjollys_database',
-        'USER': 'bjollys',
-        'PASSWORD': 'bjollyRasel77@',
-        'HOST': 'localhost',
-        'PORT': '3306',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
@@ -47,18 +34,12 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost:3000',
     'http://127.0.0.1:8000',
     'http://localhost:5173',
-    'https://api.bjollys.net',
-    'https://www.bjollys.net',
-    'https://bjollys.net',
 ]
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
     'http://localhost:5173',
-    'https://api.bjollys.net',
-    'https://www.bjollys.net',
-    'https://bjollys.net',
 ]
 
 REST_FRAMEWORK['DEFAULT_SCHEMA_CLASS'] = 'drf_spectacular.openapi.AutoSchema'

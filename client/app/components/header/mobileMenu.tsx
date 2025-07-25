@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "@remix-run/react";
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useGetPagesQuery } from "~/redux/features/pages/pagesApi";
 import { openChannel } from "~/redux/features/popup/popupSlice";
 import { RootState } from "~/redux/store";
 import { Menu, NONAUTHMenu } from "~/utils/menu";
@@ -11,6 +12,9 @@ interface MobileMenuProps {
 }
 
 export const MobileMenu: React.FC<MobileMenuProps> = ({ setIsMenuShow }) => {
+  const { data: headerMenus } = useGetPagesQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+  });
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const auth = useSelector((state: RootState) => state.auth);
@@ -48,6 +52,19 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({ setIsMenuShow }) => {
                     >
                       {item.icon && item.icon}
                       {item.name}
+                    </Link>
+                  </li>
+                );
+              })}
+              {headerMenus?.results?.map((item: any) => {
+                return (
+                  <li>
+                    <Link
+                      to={item.menu.slug || "#"}
+                      className="text-title hover:text-white rounded-full py-1.5 px-3.5 flex items-center capitalize transition-all duration-300 hover:bg-gradient-to-r hover:from-yellow-700 hover:to-red-400 ease-linear"
+                      onClick={handleMenuClose} 
+                    >
+                      {item.menu.name}
                     </Link>
                   </li>
                 );
@@ -103,10 +120,24 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({ setIsMenuShow }) => {
                   </li>
                 );
               })}
+              {headerMenus?.results?.map((item: any) => {
+                return (
+                  <li>
+                    <Link
+                      to={item.menu.slug || "#"}
+                      className="text-title hover:text-white rounded-full py-1.5 px-3.5 flex items-center capitalize transition-all duration-300 hover:bg-gradient-to-r hover:from-yellow-700 hover:to-red-400 ease-linear"
+                      onClick={handleMenuClose} 
+                    >
+                      {item.menu.name}
+                    </Link>
+                  </li>
+                );
+              })}
             </>
           )}
         </ul>
       </nav>
+
       {auth.tokens && auth.user ? (
         <div className="flex flex-row flex-wrap items-center justify-center">
           <Link className="p-2.5" to={"/"} onClick={handleMenuClose}>
@@ -114,7 +145,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({ setIsMenuShow }) => {
           </Link>
           <div className="relative">
             <button className="text-sm py-[0.688rem] px-[2.125rem] rounded-[1.875rem] uppercase text-white border border-secondary bg-secondary transition-all duration-[0.3s] flex items-center gap-2 leading-normal font-normal cursor-pointer focus:bg-[#0000] xl:hover:bg-[#0000] xl:hover:border-[#8c8888] focus:border-[#8c8888] xl:hover:text-black focus:text-black xl:hover:rounded-tl-[1.875rem] focus:rounded-tl-[1.875rem] xl:hover:rounded-tr-[1.875rem] focus:rounded-tr-[1.875rem] xl:hover:rounded-bl-none focus:rounded-bl-none xl:hover:rounded-br-none focus:rounded-br-none group font-nunito">
-              Rasel hossai ...
+              {auth.user.name}
               <MdOutlineKeyboardArrowDown />
               <div className="bg-[#0000] border border-[#8c8888] rounded-br-[1.875rem] rounded-bl-[1.875rem] text-[#000] left-0 p-2 absolute text-center top-[2.975rem] w-full hidden group-focus:block xl:group-hover:block">
                 <Link className="text-title text-[0.688rem] uppercase block transition-all duration-[0.3s] ease-in-out hover:text-secondary py-0.5" to={"/pay-history/"} onClick={handleMenuClose}>
