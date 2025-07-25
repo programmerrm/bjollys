@@ -9,18 +9,8 @@ JAZZMIN_SETTINGS = {
     "site_icon": None,
     "welcome_sign": "Welcome to the bjollys",
     "copyright": "Bjollys Library Ltd",
-    "search_model": ["auth.User", "auth.Group"],
+    "search_model": ["accounts.User", "auth.Group"],  # fixed
     "user_avatar": None,
-    "topmenu_links": [
-        {"name": "Home",  "url": "admin:index", "permissions": ["auth.view_user"]},
-        {"name": "Support", "url": "https://github.com/farridav/django-jazzmin/issues", "new_window": True},
-        {"model": "auth.User"},
-        {"app": "books"},
-    ],
-    "usermenu_links": [
-        {"name": "Support", "url": "https://github.com/farridav/django-jazzmin/issues", "new_window": True},
-        {"model": "auth.user"}
-    ],
     "show_sidebar": True,
     "navigation_expanded": True,
     "hide_apps": [],
@@ -36,7 +26,7 @@ JAZZMIN_SETTINGS = {
     },
     "icons": {
         "auth": "fas fa-users-cog",
-        "auth.user": "fas fa-user",
+        "accounts.user": "fas fa-user",       # fixed
         "auth.Group": "fas fa-users",
     },
     "default_icon_parents": "fas fa-chevron-circle-right",
@@ -47,6 +37,9 @@ JAZZMIN_SETTINGS = {
     "use_google_fonts_cdn": True,
     "show_ui_builder": False,
     "changeform_format": "horizontal_tabs",
-    "changeform_format_overrides": {"auth.user": "collapsible", "auth.group": "vertical_tabs"},
+    "changeform_format_overrides": {
+        "accounts.user": "collapsible",       # fixed
+        "auth.group": "vertical_tabs"
+    },
     "language_chooser": False,
 }
