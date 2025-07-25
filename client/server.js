@@ -3,9 +3,9 @@ import compression from "compression";
 import dotenv from "dotenv";
 import { createRequestHandler } from "@remix-run/express";
 
-const environment = process.env.NODE_ENV || "development";
-dotenv.config({ path: `.env.${ environment }` });
+dotenv.config();
 
+const environment = process.env.NODE_ENV || "production";
 const app = express();
 app.use(compression());
 
@@ -21,12 +21,12 @@ const port = process.env.PORT || 3001;
         "*",
         createRequestHandler({
             build,
-            mode: process.env.NODE_ENV,
+            mode: environment,
         })
     );
 
     app.listen(port, () => {
-        console.log(`✅ Remix app running at http://localhost:${ port }`);
-        console.log(`🌱 Running in ${ process.env.NODE_ENV } mode`);
+        console.log(`✅ Remix app running at http://localhost:${port}`);
+        console.log(`🌱 Running in ${environment} mode`);
     });
 })();

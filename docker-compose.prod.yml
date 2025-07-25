@@ -6,7 +6,7 @@ services:
       context: ./client
       dockerfile: Dockerfile.prod
     env_file:
-      - ./client/.env.prod
+      - ./client/.env
     networks:
       - pngnet
     command: node server.js
@@ -15,11 +15,10 @@ services:
     build: 
       context: ./backend
       dockerfile: Dockerfile.prod
-    # Optional in production:
     volumes:
       - ./backend:/app
     env_file:
-      - ./backend/.env.prod
+      - ./backend/.env
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
@@ -34,7 +33,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile.prod
     env_file:
-      - ./backend/.env.prod
+      - ./backend/.env
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
@@ -56,7 +55,7 @@ services:
     image: mysql:8.0
     restart: always
     env_file:
-      - ./backend/.env.prod
+      - ./backend/.env
     environment:
       MYSQL_DATABASE: ${MYSQL_DB}
       MYSQL_USER: ${MYSQL_USER}
