@@ -13,11 +13,11 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', None)
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'bjollys_database',
-        'USER': 'bjollys',
-        'PASSWORD': 'bjollyRasel77@',
-        'HOST': 'localhost',
-        'PORT': '3306',
+        'NAME': os.getenv('MYSQL_DB'),
+        'USER': os.getenv('MYSQL_USER'),
+        'PASSWORD': os.getenv('MYSQL_PASSWORD'),
+        'HOST': os.getenv('SQL_HOST'),
+        'PORT': os.getenv('SQL_PORT', '3306'),
     }
 }
 
