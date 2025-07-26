@@ -19,11 +19,6 @@ services:
       - ./backend:/app
     env_file:
       - ./backend/.env
-    environment:
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
-    depends_on:
-      - redis
     networks:
       - pngnet
     command: gunicorn app.wsgi:application --bind 0.0.0.0:8000
@@ -34,35 +29,16 @@ services:
       dockerfile: Dockerfile.prod
     env_file:
       - ./backend/.env
-    environment:
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
-    depends_on:
-      - backend
-      - redis
     networks:
       - pngnet
+    depends_on:
+      - backend
     command: celery -A app worker --loglevel=info
 
   redis:
     image: redis:7-alpine
     ports:
       - "6379:6379"
-    networks:
-      - pngnet
-  
-  mysql:
-    image: mysql:8.0
-    restart: always
-    env_file:
-      - ./backend/.env
-    environment:
-      MYSQL_DATABASE: ${MYSQL_DB}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-    volumes:
-      - mysql_data:/var/lib/mysql
     networks:
       - pngnet
 
@@ -81,8 +57,6 @@ services:
       - /etc/letsencrypt:/etc/letsencrypt:ro
     networks:
       - pngnet
-volumes:
-  mysql_data:
 
 networks:
   pngnet:
