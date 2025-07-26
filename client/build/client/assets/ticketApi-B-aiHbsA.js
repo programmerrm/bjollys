@@ -1,0 +1,1 @@
+import{b as i}from"./apiSlice-BfTmcDt-.js";const o=i.injectEndpoints({endpoints:t=>({addTicket:t.mutation({query:e=>({url:"/configuration/create-ticker/",method:"POST",body:e})}),getTicket:t.query({query:()=>"configuration/ticker/"})})}),{useAddTicketMutation:n,useGetTicketQuery:r}=o;export{n as a,r as u};

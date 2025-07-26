@@ -11,6 +11,7 @@ export const meta: MetaFunction = () => {
 };
 
 export default function Index() {
+  console.log('SERVER URL : ', SERVER_URL);
   return (
     <section className="relative top-0 left-0 right-0 w-full">
       <section className="relative top-0 left-0 right-0 w-full">
